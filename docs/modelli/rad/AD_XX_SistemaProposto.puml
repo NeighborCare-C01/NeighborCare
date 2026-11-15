@@ -1,0 +1,17 @@
+' ESEMPIO DIDATTICO INVENTATO - non e un modello di NeighborCare.
+' Esempio: Invia un saluto. Fonte: nessuna, scenario semplificato.
+' Qui va l’Activity Diagram del sistema proposto (RAD §3.9). Nell’esempio una decisione separa il percorso valido da quello di errore.
+' Per il progetto: sostituire contenuti, nomi e riferimenti con quelli dei documenti approvati.
+@startuml
+title ESEMPIO INVENTATO - Activity sistema proposto
+start
+:Utente inserisce il nome;
+:Utente preme Saluta;
+:Sistema rimuove gli spazi esterni;
+if (Nome non vuoto?) then (si)
+  :Sistema genera e mostra il saluto;
+else (no)
+  :Sistema mostra "Inserisci un nome";
+endif
+stop
+@enduml

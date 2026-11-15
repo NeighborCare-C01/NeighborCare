@@ -1,0 +1,19 @@
+' ESEMPIO DIDATTICO INVENTATO - non e il deployment di NeighborCare.
+' Esempio: Invia un saluto. Fonte: nessuna, scenario semplificato.
+' Qui va il Deployment Diagram SDD (§3.3.1): nodi di esecuzione, artefatti distribuiti e collegamenti.
+' Esempio: la schermata gira nel browser del dispositivo utente; il servizio gira su un server.
+' HTTPS e la distribuzione su due nodi sono scelte inventate solo per spiegare questa vista.
+' Per il progetto: usare nodi, ambienti, artefatti e protocolli dell’SDD approvato.
+' Rinominare il file secondo ID/nome originali del diagramma, senza inventare nuovi ID.
+@startuml
+title ESEMPIO INVENTATO - Deployment Diagram SDD
+node "Dispositivo utente" as Client {
+  node "Browser" as Browser {
+    artifact "Schermata saluto" as UI
+  }
+}
+node "Server applicativo" as Server {
+  artifact "Servizio saluti" as Servizio
+}
+UI --> Servizio : HTTPS - invio nome / risposta
+@enduml

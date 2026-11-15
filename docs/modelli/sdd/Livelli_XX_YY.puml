@@ -1,0 +1,21 @@
+' ESEMPIO DIDATTICO INVENTATO - non e un modello di NeighborCare.
+' Esempio autonomo: applicazione generica a tre livelli, non il semplice UC del saluto.
+' Qui va il diagramma architetturale a livelli (SDD §3.2.2, Three-tier Architecture).
+' Mostra la separazione delle responsabilita, non i server fisici del deployment.
+' La presenza del livello dati in questo esempio generico non aggiunge persistenza al saluto.
+' Per il progetto sostituire livelli e dipendenze con quelli dell’SDD approvato.
+@startuml
+title ESEMPIO INVENTATO - Architettura a tre livelli generica
+top to bottom direction
+package "Presentation Tier" {
+  component "Interfaccia utente" as UI
+}
+package "Application Tier" {
+  component "Logica applicativa" as App
+}
+package "Data Tier" {
+  database "Archivio dati" as Dati
+}
+UI --> App : operazioni applicative
+App --> Dati : lettura / scrittura
+@enduml

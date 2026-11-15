@@ -1,0 +1,15 @@
+' ESEMPIO DIDATTICO INVENTATO - non e un modello di NeighborCare.
+' Esempio: navigazione delle schermate per Invia un saluto.
+' Qui va un Navigational Path del RAD §3.10, uno per ciascuna vista/attore del documento.
+' I nodi sono schermate; le frecce indicano azioni di navigazione, non chiamate tra classi.
+' Per il progetto conservare ID, schermate e percorsi originali (per esempio NP_C, NP_NB, NP_B).
+' UC didattico collegato: ../../rad/uc/UC_XX_YY.md
+@startuml
+title ESEMPIO INVENTATO - Navigational Path
+state "Schermata saluto" as Form
+state "Schermata saluto con risultato" as Risultato
+[*] --> Form
+Form --> Risultato : Saluta [nome non vuoto dopo trim]
+Form --> Form : Saluta [nome vuoto dopo trim] / mostra errore
+Risultato --> Form : modifica nome
+@enduml
