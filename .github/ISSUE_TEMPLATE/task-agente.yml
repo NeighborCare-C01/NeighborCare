@@ -1,6 +1,7 @@
 name: Task per agente
 description: Attività per un agente, collegata a requisiti, casi d’uso, modelli e test.
 title: "[TASK] "
+labels: ["task-agente"]
 body:
   - type: input
     id: riferimenti
