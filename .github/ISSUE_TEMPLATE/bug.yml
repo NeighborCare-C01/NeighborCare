@@ -1,0 +1,39 @@
+name: Bug
+description: Segnalazione riproducibile di un difetto rispetto alla specifica.
+title: "[BUG] "
+body:
+  - type: textarea
+    id: osservato
+    attributes:
+      label: Comportamento osservato
+      description: Descrivi il difetto e l’ambiente o versione interessata.
+    validations:
+      required: true
+  - type: textarea
+    id: atteso
+    attributes:
+      label: Comportamento atteso
+      description: Cita la specifica o il modello che definisce il risultato atteso.
+    validations:
+      required: true
+  - type: textarea
+    id: riproduzione
+    attributes:
+      label: Procedura per riprodurlo
+      description: Passi e dati sintetici necessari a riprodurre il problema.
+    validations:
+      required: true
+  - type: textarea
+    id: evidenze
+    attributes:
+      label: Evidenze
+      description: Log sanitizzati, test fallito o screenshot senza credenziali o dati personali; se non disponibili, dichiaralo.
+    validations:
+      required: true
+  - type: input
+    id: requisiti
+    attributes:
+      label: Requisiti interessati
+      description: ID RF/RNF o UC reali; se non ancora identificati, dichiaralo senza inventarli.
+    validations:
+      required: true

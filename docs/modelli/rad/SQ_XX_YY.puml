@@ -1,0 +1,24 @@
+' ESEMPIO DIDATTICO INVENTATO - non e un modello di NeighborCare.
+' Esempio: Invia un saluto. Fonte: nessuna, scenario semplificato.
+' Qui va il sequence reale. UC collegato: ../../rad/uc/UC_XX_YY.md. L’alt distingue successo ed errore.
+' Per il progetto: sostituire contenuti, nomi e riferimenti con quelli dei documenti approvati.
+' I nomi delle classi di questo esempio seguono ../sdd/class.puml.
+@startuml
+title ESEMPIO INVENTATO - Sequence Diagram
+actor Utente
+boundary SchermataSaluto
+control SalutoService
+entity Saluto
+Utente -> SchermataSaluto : inserisce nome e preme Saluta
+SchermataSaluto -> SalutoService : genera(nome)
+SalutoService -> SalutoService : rimuove spazi esterni e verifica nome
+alt nome non vuoto
+  create Saluto
+  SalutoService -> Saluto : crea("Ciao, " + nome + "!")
+  SalutoService --> SchermataSaluto : saluto
+  SchermataSaluto --> Utente : mostra saluto.testo
+else nome vuoto
+  SalutoService --> SchermataSaluto : errore "Inserisci un nome"
+  SchermataSaluto --> Utente : mostra errore
+end
+@enduml

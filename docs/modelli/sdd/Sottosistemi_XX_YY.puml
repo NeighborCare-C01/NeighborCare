@@ -1,0 +1,15 @@
+' ESEMPIO DIDATTICO INVENTATO - non e un modello di NeighborCare.
+' Esempio: Invia un saluto. Fonte: nessuna, scenario semplificato.
+' Qui va il diagramma delle dipendenze dei sottosistemi (SDD §3.2.1).
+' L’esempio mostra due sottosistemi logici e la dipendenza di utilizzo tra loro.
+' Per il progetto: sostituire contenuti, nomi e riferimenti con quelli dei documenti approvati.
+@startuml
+title ESEMPIO INVENTATO - Dipendenze dei sottosistemi
+package "Presentazione" <<subsystem>> as UI
+package "Gestione saluti" <<subsystem>> as Servizio
+UI ..> Servizio : usa genera(nome)
+note bottom of Servizio
+  Valida il nome e restituisce
+  un saluto oppure un errore.
+end note
+@enduml

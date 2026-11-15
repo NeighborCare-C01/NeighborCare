@@ -1,0 +1,13 @@
+' ESEMPIO DIDATTICO INVENTATO - non e un modello di NeighborCare.
+' Esempio: Invia un saluto. Fonte: nessuna, scenario semplificato.
+' Qui va lo statechart reale. Nell’esempio gli stati appartengono alla schermata del saluto.
+' Per il progetto: sostituire contenuti, nomi e riferimenti con quelli dei documenti approvati.
+@startuml
+title ESEMPIO INVENTATO - Statechart della schermata
+[*] --> Pronta
+Pronta --> Elaborazione : preme Saluta
+Elaborazione --> SalutoMostrato : nome non vuoto dopo trim / mostra saluto
+Elaborazione --> ErroreMostrato : nome vuoto dopo trim / mostra errore
+ErroreMostrato --> Pronta : modifica nome
+SalutoMostrato --> Pronta : modifica nome
+@enduml
