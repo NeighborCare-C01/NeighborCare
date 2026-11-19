@@ -7,7 +7,7 @@ on:
     names: ["fase:piano"]
 engine:
   id: copilot
-  model: claude-haiku-4.5
+  model: auto
 permissions:
   contents: read
   issues: read
