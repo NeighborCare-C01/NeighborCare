@@ -15,14 +15,17 @@ I Custom Agent Copilot sono in `.github/agents/` e riusano le regole comuni `AGE
 5. **Testing — Tester indipendente:** il TM autorizza la fase; il Tester usa UC e Test Frame approvati, scrive un test per frame in un contesto separato e segnala i fallimenti senza rendere i test artificialmente verdi.
 6. **Review — CI e Revisore:** la PR viene marcata Ready for review. La CI esegue i controlli disponibili; il Revisore legge diff e modelli e produce rilievi senza modifiche.
 7. **Approvazione umana e merge:** un altro membro esegue una review GitHub **Approve**, controlla CI e conformità ai modelli. Merge solo dopo le condizioni del Ruleset; mai da parte dell'agente.
-8. **Tracciabilità:** la PR registra Issue, UC, riferimenti dei modelli, Test Frame, esiti, approvazioni e limiti. Aggiornare Trello/Project manualmente secondo gli accordi del team.
+8. **Tracciabilità:** la PR registra Issue, UC, riferimenti dei modelli, Test Frame, esiti, approvazioni e limiti. Aggiornare Trello/Project manualmente secondo gli accordi del team; consultare `docs/guida-operativa-team-agentic.md` per ruoli, label e verifiche.
 
 Per ogni fase usare una sessione separata quando serve indipendenza. In assenza di un agente Copilot abilitato si possono utilizzare manualmente i file `agents/tester.md` e `agents/revisore.md`.
+
+**Baseline PM 19/11/2026:** RAD v1.0 e SDD v0.0 sono dichiarati definitivi per il corso. Per ogni task citare pagina/sezione effettiva del PDF; eventuali lacune di specifica bloccano solo il task interessato. I PDF e tutti i template didattici rimangono invariati.
 
 ## Automazioni effettivamente presenti
 
 - `.github/workflows/ci.yml`: solo controlli deterministici delle Pull Request su `main` (collegamenti locali Markdown, sintassi YAML, spazi superflui nelle modifiche, working tree pulito).
-- **Non** sono configurati workflow a pagamento `piano.yml`, `implementa.yml`, `test.yml`, `revisione.yml` con chiamate ai modelli; le fasi sono avviate dai TM.
+- È già presente `.github/workflows/piano.md` compilato in `piano.lock.yml`: la label `fase:piano` avvia davvero il Pianificatore, ma **quattro run hanno fallito con HTTP 502** al 19/11/2026. Non riattivare il trigger per prove ripetute prima di una correzione comprovata.
+- Non sono configurati gli ulteriori workflow AI `implementa.yml`, `test.yml`, `revisione.yml`; queste fasi sono gestite manualmente dai TM con Custom Agents/CLI e i gate umani della procedura.
 - Quando esisteranno `backend/pom.xml` e `frontend/package.json` con stack e comandi approvati, aggiungere alla CI build e test pertinenti; non simulare verifiche inesistenti.
 - Aggiungere lo status check `repository-checks` come obbligatorio nel Ruleset di `main` **dopo** la prima esecuzione corretta.
 - `.github/CODEOWNERS` identifica il PM iniziale per le configurazioni sensibili; attivare la review obbligatoria dei Code Owner solo dopo aver verificato account e organizzazione del team.
@@ -30,7 +33,7 @@ Per ogni fase usare una sessione separata quando serve indipendenza. In assenza 
 ## Governance e costi
 
 - I Custom Agent consumano le quote dell'account Copilot che li usa, nei limiti del piano disponibile. La pubblicità della repository non rende i crediti AI illimitati.
-- Non creare secret AI, non acquistare crediti o attivare fallback a pagamento. Il budget Actions dell'organizzazione deve restare controllato.
+- Il repository contiene già il Secret `COPILOT_GITHUB_TOKEN` per il Pianificatore sperimentale. Non leggerne o pubblicarne il valore, non crearne altri né acquistare crediti o attivare fallback a pagamento senza autorizzazione. Il budget Actions dell'organizzazione deve restare controllato.
 - Le Actions non devono usare `pull_request_target` per eseguire codice della PR. Il token CI è in sola lettura e non esegue commit, push, merge o commenti.
 - Tre tentativi falliti sullo stesso problema richiedono escalation umana. Le PR generate devono essere comprese e spiegate dal loro responsabile.
 - Il Ruleset attivo protegge `main` con una review umana; non introdurre bypass senza decisione esplicita dei PM.
