@@ -1,5 +1,18 @@
-# Responsabili iniziali verificati. Aggiungere il secondo PM dopo averne verificato l'username GitHub.
-# L'approvazione dei Code Owner diventerà obbligatoria solo quando il Ruleset lo richiederà.
+# NeighborCare C01 — ownership per area (tutorial GPS, passo 16).
+# Il team @Team-C01/developers deve essere visibile, contenere i 6 developer e avere accesso Write.
+# CODEOWNERS richiede la review di almeno UN membro del team, non di tutti e sei.
+# Le configurazioni e la baseline documentale richiedono il PM.
+* @Team-C01/developers
+/frontend/ @Team-C01/developers
+/backend/ @Team-C01/developers
+/docs/test/ @Team-C01/developers
+/docs/rad/ @Antonio-Caiazzo
+/docs/sdd/ @Antonio-Caiazzo
+/docs/modelli/ @Antonio-Caiazzo
 /AGENTS.md @Antonio-Caiazzo
+/CLAUDE.md @Antonio-Caiazzo
+/GEMINI.md @Antonio-Caiazzo
+/.claude/ @Antonio-Caiazzo
 /.github/ @Antonio-Caiazzo
 /docs/processo-agentico.md @Antonio-Caiazzo
+/docs/guida-operativa-team-agentic.md @Antonio-Caiazzo

@@ -5,8 +5,7 @@ NeighborCare mette in relazione Beneficiari e Neighbor verificati per commission
 
 ## Stato del progetto
 
-Il RAD disponibile è in revisione e l’SDD è una bozza;
-l’approvazione della baseline per lo sviluppo non è attestata.
+Per decisione operativa del PM (19/11/2026), RAD v1.0 e SDD v0.0 sono la **baseline definitiva di riferimento** per i task di NeighborCare. I PDF originali rimangono invariati; eventuali parti non specificate si chiariscono tramite Issue, senza inventare requisiti.
 
 L'architettura prevista dallo SDD è Three-Tier:
 
@@ -26,13 +25,12 @@ Il codice applicativo non è ancora stato inizializzato.
 
 | Artefatto            | Percorso                                | Stato                                                                |
 | -------------------- | --------------------------------------- | -------------------------------------------------------------------- |
-| RAD v1.0, 09/11/2026 | [RAD](docs/rad/C01_RAD.pdf) | REVIEW: contiene commenti di revisione; approvazione non attestata   |
-| SDD v0.0             | [SDD](docs/sdd/C01_SDD.pdf)  | DRAFT: incompleto; copertina e footer riportano versioni discordanti |
+| RAD v1.0, 09/11/2026 | [RAD](docs/rad/C01_RAD.pdf) | Baseline definitiva PM (19/11/2026); PDF originale invariato   |
+| SDD v0.0             | [SDD](docs/sdd/C01_SDD.pdf)  | Baseline definitiva PM (19/11/2026); PDF originale invariato |
 
-I PDF sono conservati integralmente. La loro presenza non costituisce approvazione.
+I PDF sono conservati integralmente. Il carattere definitivo della baseline deriva dalla decisione del PM qui registrata, non da modifiche ai PDF.
 La struttura include esempi didattici inventati (“Invia un saluto”) per UC, sorgenti PlantUML, Category Partition e Test Frame: mostrano come organizzare gli artefatti e non costituiscono specifiche di NeighborCare.
-Prima dello sviluppo vanno risolti i commenti rilevanti del RAD e le incoerenze dello SDD, inclusi i segnaposto tecnologici in §3.1 e i riferimenti ai contenuti in §1.6.
-Occorrono inoltre contratti condivisi, modelli pertinenti e Test Frame approvati; non sono ancora disponibili in forma separata.
+La baseline documentale è definitiva; se una specifica necessaria a una Issue è mancante o ambigua (inclusi gli eventuali segnaposto editoriali), il TM deve chiedere un chiarimento approvato prima di quel task. Diagrammi e Test Frame pertinenti possono essere richiamati per pagina dai PDF oppure trasposti in file separati tracciabili; gli esempi didattici non sono specifiche.
 
 ## Struttura
 
@@ -59,11 +57,11 @@ La [CI](.github/workflows/ci.yml) controlla le Pull Request verso `main` con str
 
 I file `XX/YY`, `docs/modelli/sdd/class.puml` e gli esempi di test sono **template didattici da conservare**: aiutano i ragazzi a organizzare casi d'uso, UML e Test Frame, ma non rappresentano le specifiche da implementare. Sostituirli o affiancarli con i **modelli reali approvati** prima di avviare un UC di prodotto.
 
-Copilot e le Actions hanno quote e condizioni diverse; non attivare servizi o API a pagamento. Le fasi agentiche, salvo la CI, sono avviate e controllate dai TM, non tramite webhook automatici. Chi usa un agente rimane responsabile del suo codice.
+Copilot e le Actions hanno quote e condizioni diverse; non attivare servizi o API a pagamento. La CI è deterministica. `fase:piano` è collegata a un workflow `gh-aw` esistente ma attualmente fallisce con HTTP 502: non riavviarlo fino alla correzione. Le altre fasi restano sotto controllo umano e non hanno trigger AI attivi. Vedi [guida operativa per PM e developer](docs/guida-operativa-team-agentic.md). Chi usa un agente rimane responsabile del suo codice.
 
 ## Stato di sviluppo
 
 - Frontend React/PWA e backend Java/Spring Boot da inizializzare previa approvazione di stack e comandi.
 - PostgreSQL proposto nell'SDD; l'eventuale uso di PostGIS richiede una decisione tecnica documentata.
-- I veri modelli UML, Category Partition e Test Frame devono ancora essere importati e approvati.
+- Eventuali trasposizioni testuali dei modelli UML, delle Category Partition e dei Test Frame vanno confrontate con la baseline definitiva prima dell'uso.
 - Trello resta lo strumento di coordinamento operativo e Ganttfather per la pianificazione.

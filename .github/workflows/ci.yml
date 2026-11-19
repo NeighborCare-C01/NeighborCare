@@ -27,6 +27,9 @@ jobs:
       - name: Check Markdown local links
         run: python3 .github/scripts/check_repository.py
 
+      - name: Check agentic setup and preserve educational examples
+        run: python3 .github/scripts/check_agentic_setup.py
+
       - name: Check YAML syntax
         shell: bash
         run: |

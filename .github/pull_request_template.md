@@ -2,7 +2,8 @@
 
 <!-- Closes #numero se il task è concluso; altrimenti Refs #numero. -->
 Issue e UC/requisiti:
-Piano e approvazione del TM assegnato:
+Piano e approvazione esplicita del TM assegnato (link al commento e data):
+Label di fase Issue/PR e autore del passaggio:
 
 ## Modifiche effettuate
 
@@ -20,6 +21,13 @@ Piano e approvazione del TM assegnato:
 
 <!-- Scostamenti dal piano, nuove dipendenze o modifiche ai modelli e relative approvazioni; oppure Nessuna. -->
 Tentativi falliti sullo stesso problema e interventi umani:
+
+## Separazione dei ruoli
+
+Implementatore (umano/agente):
+Tester indipendente (persona/sessione):
+Revisore umano diverso dall'autore:
+Esito CODEOWNERS per le aree modificate:
 
 ## Checklist di review
 

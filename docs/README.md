@@ -47,3 +47,9 @@ PDF originali: [RAD REVIEW](rad/C01_RAD.pdf) e [SDD DRAFT](sdd/C01_SDD.pdf). I m
 **Verifica prevista:** controllare che i file esistano e che i collegamenti siano corretti. I Test Frame sono citati per mostrare la tracciabilità; i test applicativi sono N/A per questa attività documentale.
 
 Questi link relativi funzionano dal README. Nel corpo di una Issue incollare i corrispondenti URL GitHub o permalink, indicando versione e stato didattico degli artefatti.
+
+## Baseline definitiva e uso agentico (decisione PM 19/11/2026)
+
+Il PM assume `rad/C01_RAD.pdf` (v1.0) e `sdd/C01_SDD.pdf` (v0.0) come baseline definitiva operativa del corso; i PDF non vengono riscritti e le eventuali annotazioni interne rimangono visibili. Per ogni Issue citare le sezioni/pagine pertinenti. Le lacune di una specifica si registrano e approvano prima di implementare il punto interessato; non si deducono dai template.
+
+**Preservare tutti gli esempi** `UC_XX_YY.md`, `.puml`, `CP_UC_XX.md`, `TF_UC_XX.md`: rimangono materiale didattico per i developer. Consultare [guida al workflow di team](guida-operativa-team-agentic.md) per label, approvazioni, ruoli e PR.

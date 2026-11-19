@@ -1,5 +1,5 @@
 name: Task per agente
-description: Attività per un agente, collegata a requisiti, casi d’uso, modelli e test.
+description: Task tracciato su baseline RAD v1.0 e SDD v0.0 definitive, con piano e approvazione TM.
 title: "[TASK] "
 labels: ["task-agente"]
 body:
@@ -8,6 +8,13 @@ body:
     attributes:
       label: ID requisito o caso d’uso
       description: Usa ID reali del RAD; per setup o documentazione indica N/A e il motivo.
+    validations:
+      required: true
+  - type: input
+    id: tm
+    attributes:
+      label: Technical Manager (TM) assegnato
+      description: Nome o username del developer responsabile della revisione e dell'approvazione del piano.
     validations:
       required: true
   - type: textarea
@@ -21,7 +28,7 @@ body:
     id: modelli
     attributes:
       label: Riferimenti ai modelli
-      description: File o link, sezioni, versioni e stato di approvazione di RAD, SDD e diagrammi pertinenti; dichiara ciò che manca.
+      description: Usa RAD v1.0 e SDD v0.0 definitivi (decisione PM 19/11/2026); cita percorsi, pagine e diagrammi. Segnala esplicitamente lacune o ambiguità.
     validations:
       required: true
   - type: textarea

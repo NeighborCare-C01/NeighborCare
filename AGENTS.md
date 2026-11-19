@@ -4,10 +4,11 @@ Questa è l’unica fonte autorevole delle regole di repository per TM e agenti 
 
 ## Contesto e riferimenti
 
-NeighborCare è una piattaforma per il supporto di vicinato e commissioni non sanitarie. La baseline RAD/SDD e il perimetro del prototipo devono essere **approvati dal team** prima di usarli per implementare funzionalità.
+NeighborCare è una piattaforma per il supporto di vicinato e commissioni non sanitarie. Per il workflow didattico C01 il PM ha dichiarato **definitiva la baseline RAD v1.0 / SDD v0.0 in data 19/11/2026**. I PDF originali non si modificano: eventuali diciture REVIEW/DRAFT presenti al loro interno restano parte degli originali. I dettagli tecnici non specificati nei PDF non possono essere inventati: vanno chiariti e approvati tramite Issue prima della relativa implementazione.
 
-- RAD: `docs/rad/C01_RAD.pdf` (REVIEW).
-- SDD: `docs/sdd/C01_SDD.pdf` (DRAFT).
+- RAD definitivo (baseline operativa dichiarata dal PM): `docs/rad/C01_RAD.pdf`, v1.0.
+- SDD definitivo (baseline operativa dichiarata dal PM): `docs/sdd/C01_SDD.pdf`, v0.0.
+- Guida operativa per PM e developers: `docs/guida-operativa-team-agentic.md`.
 - Percorsi e convenzioni degli artefatti: `docs/README.md`.
 - Workflow di team: `docs/processo-agentico.md`.
 
@@ -30,7 +31,7 @@ Un file di ruolo non avvia un task automaticamente e non concede permessi aggiun
 
 ## Modalità d’uso degli assistenti
 
-Usare il processo `docs/processo-agentico.md`: **Issue → piano → approvazione TM → implementazione → Tester indipendente → CI e Revisore → approvazione umana → merge**. Le label sono tracciamento delle fasi finché non esiste una specifica automazione autorizzata.
+Usare il processo `docs/processo-agentico.md`: **Issue → piano → approvazione TM → implementazione → Tester indipendente → CI e Revisore → approvazione umana → merge**. Le label sono tracciamento delle fasi: `fase:piano` attiva già il Pianificatore `gh-aw`, ma il motore Copilot restituisce HTTP 502 (4 esecuzioni fallite al 19/11/2026), quindi NON va riattivato per prove ripetute. `fase:implementazione` e `fase:test` non attivano ancora agenti AI: usare le procedure manuali descritte nella guida finché non saranno disponibili workflow verificati.
 
 La CI in `.github/workflows/ci.yml` esegue controlli deterministici e gratuiti, non chiama modelli AI. Non configurare API, chiavi, secret o servizi AI a pagamento. Copilot cloud agent richiede idoneità e quote del piano del singolo utente; verificarle prima dell'uso. Nessun fallback a pagamento.
 
