@@ -4,67 +4,35 @@ Questa è l’unica fonte autorevole delle regole di repository per TM e agenti 
 
 ## Contesto e riferimenti
 
-NeighborCare è una piattaforma per il supporto di
-vicinato e la gestione di commissioni non sanitarie.
+NeighborCare è una piattaforma per il supporto di vicinato e commissioni non sanitarie. La baseline RAD/SDD e il perimetro del prototipo devono essere **approvati dal team** prima di usarli per implementare funzionalità.
 
-Documenti attualmente disponibili:
+- RAD: `docs/rad/C01_RAD.pdf` (REVIEW).
+- SDD: `docs/sdd/C01_SDD.pdf` (DRAFT).
+- Percorsi e convenzioni degli artefatti: `docs/README.md`.
+- Workflow di team: `docs/processo-agentico.md`.
 
-- RAD: `docs/rad/C01_RAD.pdf` (REVIEW)
-- SDD: `docs/sdd/C01_SDD.pdf` (DRAFT)
+Per ciascuna Issue, consulta soltanto UC, Sequence, Class Diagram ristrutturato SDD, Statechart, architettura e Test Frame **reali e pertinenti**. Se non sono stati trasposti in Markdown o PlantUML, usa le sezioni del PDF indicando pagina e versione. Il Class Diagram di implementazione sarà la versione ristrutturata approvata dell'SDD.
 
-La presenza dei PDF non attesta approvazione. Prima di implementare, verificare
-versione e approvazione dei requisiti e dei modelli pertinenti. Rispettare
-l’architettura dell’SDD approvato. Percorsi e convenzioni: `docs/README.md`.
-Leggere il caso d’uso assegnato in `docs/rad/uc/` se trasposto, altrimenti nel RAD.
-I file XX/YY e il `docs/modelli/sdd/class.puml` contengono esempi didattici inventati
-(“Invia un saluto” e una vista generica a tre livelli), esplicitamente richiesti per spiegare la struttura. Non sono
-specifiche di NeighborCare e non autorizzano a implementare quei comportamenti.
-Per il progetto usare soltanto contenuti ricavati dagli artefatti approvati.
-
-Quando disponibili, conservare i sorgenti PlantUML in `docs/modelli/rad/` e
-`docs/modelli/sdd/`, equivalenti ai rispettivi PDF. Per classi e metodi usare solo
-il Class Diagram ristrutturato SDD (`docs/modelli/sdd/class.puml`); non mantenere
-un sorgente Class Diagram RAD separato. Consultare anche Sequence Diagram,
-Statechart, Activity e Navigational Path RAD pertinenti, oltre a dipendenze dei
-sottosistemi, livelli architetturali e Deployment Diagram SDD. Finché non trasposti,
-usare sezioni e pagine dei PDF. Il Class Diagram ristrutturato deve essere aggiunto
-e approvato nell’SDD dal team; l’esempio non ne attesta la disponibilità.
-
-Conservare Test Frame e Category Partition in `docs/test/`; i file di esempio
-attuali devono essere compilati con gli artefatti approvati prima di usarli per i test.
-
-Eventuali modifiche alla baseline devono essere
-approvate e riportate sia nei documenti sia nei
-relativi sorgenti PlantUML.
+Le cartelle `docs/rad/uc/`, `docs/modelli/` e `docs/test/` contengono anche **template/esempi didattici** da usare come guida di formato, non come requisiti NeighborCare. Lasciarli disponibili per il team; **non implementare comportamenti inventati dai template**. Ogni nuovo file reale deve rimandare alla fonte approvata e usare gli identificativi originali.
 
 ## Ruoli separati
 
-Le regole comuni restano in questo file. Le istruzioni dei ruoli sono condivise
-tra Codex, Claude, Gemini, Copilot e gli altri strumenti:
+Le regole condivise sono in questo file; i ruoli eseguibili/selezionabili con Copilot sono in `.github/agents/`:
 
-- [agents/tester.md](agents/tester.md): test derivati dai Test Frame.
-- [agents/revisore.md](agents/revisore.md): confronto delle modifiche con i modelli.
+- `pianificatore.agent.md`: analisi dei modelli e piano, senza modifiche;
+- `implementatore.agent.md`: codice entro piano approvato, branch e Draft PR;
+- `tester.agent.md`: test da Test Frame in contesto indipendente;
+- `revisore.agent.md`: verifica in sola lettura di diff e modelli.
 
-Quando il TM assegna uno di questi ruoli, leggere il relativo file prima di agire.
-Usare una sessione o un contesto separato da quello dell’implementatore, scelto dal TM.
-`agents/` è una convenzione di repository, non una configurazione di avvio automatico:
-se lo strumento non legge AGENTS.md da solo, indicare esplicitamente entrambi i file nel task.
-I file in `.claude/agents/` sono soltanto adattatori per il riconoscimento dei ruoli
-in Claude Code; le istruzioni non vanno duplicate lì. La presenza dei file non attiva
-pipeline GitHub o garantisce gli stessi permessi tecnici su strumenti diversi.
+I ruoli `agents/tester.md` e `agents/revisore.md` restano condivisi con Codex, Claude, Gemini e gli strumenti manuali. Gli adattatori `.claude/agents/`, `CLAUDE.md`, `GEMINI.md` e `.github/copilot-instructions.md` non devono duplicare queste regole.
+
+Un file di ruolo non avvia un task automaticamente e non concede permessi aggiuntivi: rispettare sempre le autorizzazioni dell'account e il Ruleset GitHub.
 
 ## Modalità d’uso degli assistenti
 
-Il team usa manualmente gli assistenti scelti dal TM, leggendo i file di istruzioni
-condivisi. Non introdurre API dei modelli, servizi o automazioni a pagamento, né
-attivare fatturazione o acquistare crediti. Un’integrazione gratuita può essere
-valutata solo dopo aver verificato condizioni aggiornate, quote e assenza di
-addebiti automatici o fallback a pagamento. Un abbonamento a un assistente non
-va considerato prova che le sue API siano incluse: verificare le condizioni.
-Per ora non è configurata alcuna integrazione API né pipeline agentica automatica;
-i task vengono passati manualmente agli strumenti.
-Questa regola riguarda gli strumenti di sviluppo: non modifica i requisiti funzionali
-del prodotto descritti nel RAD/SDD.
+Usare il processo `docs/processo-agentico.md`: **Issue → piano → approvazione TM → implementazione → Tester indipendente → CI e Revisore → approvazione umana → merge**. Le label sono tracciamento delle fasi finché non esiste una specifica automazione autorizzata.
+
+La CI in `.github/workflows/ci.yml` esegue controlli deterministici e gratuiti, non chiama modelli AI. Non configurare API, chiavi, secret o servizi AI a pagamento. Copilot cloud agent richiede idoneità e quote del piano del singolo utente; verificarle prima dell'uso. Nessun fallback a pagamento.
 
 ## Sempre
 

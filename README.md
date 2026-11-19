@@ -51,36 +51,19 @@ Occorrono inoltre contratti condivisi, modelli pertinenti e Test Frame approvati
 Le Issue contengono specifica tecnica, piano e approvazioni; le PR collegano modifiche e verifiche.
 Trello resta il riferimento per il coordinamento operativo, Ganttfather per la pianificazione.
 
-## Allineamento alla struttura delle slide
+## Workflow agentico e CI
 
-La struttura segue il passo 1 delle slide (p. 68): regole comuni nella radice,
-ruoli condivisi in `agents/` con adattatori in `.claude/agents/`, moduli in `.github/`, documenti in
-`docs/rad/uc/`, `docs/sdd/`, `docs/modelli/` e `docs/test/`.
-Il Class Diagram ristrutturato è soltanto in `docs/modelli/sdd/class.puml`.
+La repository usa **GitHub Copilot Custom Agents** in `[.github/agents/](.github/agents/)` per i ruoli Pianificatore, Implementatore, Tester e Revisore. La guida operativa è [docs/processo-agentico.md](docs/processo-agentico.md): prima di implementare il TM approva un piano registrato nella Issue, poi il lavoro procede su branch e Draft PR, con test indipendenti, review umana e merge controllato.
 
-La slide mostra un progetto Java/Maven: in NeighborCare si conservano `frontend/`
-e `backend/`; `pom.xml` e `src/` del backend saranno definiti al bootstrap approvato.
-La pipeline agentica delle slide non è attiva: per ora il team usa manualmente
-gli assistenti scelti, seguendo le istruzioni condivise. Non si introducono servizi
-o API a pagamento. Eventuali integrazioni gratuite richiedono prima la verifica
-di condizioni, quote e assenza di addebiti automatici. Non ci sono automazioni operative.
+La [CI](.github/workflows/ci.yml) controlla le Pull Request verso `main` con strumenti locali senza API AI; finché i progetti `frontend/` e `backend/` non saranno inizializzati non esegue build/test applicativi. I controlli CI saranno aggiunti al Ruleset come obbligatori solo dopo un primo run riuscito. La configurazione di [CODEOWNERS](.github/CODEOWNERS) è iniziale; per ora la review Code Owner non è obbligatoria.
 
-## Uso con agenti diversi e prima prova
+I file `XX/YY`, `docs/modelli/sdd/class.puml` e gli esempi di test sono **template didattici da conservare**: aiutano i ragazzi a organizzare casi d'uso, UML e Test Frame, ma non rappresentano le specifiche da implementare. Sostituirli o affiancarli con i **modelli reali approvati** prima di avviare un UC di prodotto.
 
-I file condivisi sono [agents/tester.md](agents/tester.md) e
-[agents/revisore.md](agents/revisore.md), nella cartella `agents/` della radice.
-Sono normali file Markdown. Per usare il tester o il revisore,
-indicare nel task: «Leggi AGENTS.md e agents/tester.md» oppure
-«Leggi AGENTS.md e agents/revisore.md», in una sessione separata.
-Gli adattatori Claude non sono necessari per gli altri strumenti. Nei task i percorsi
-`agents/tester.md` e `agents/revisore.md` partono dalla radice della repository,
-non dalla cartella `.claude/agents/`.
+Copilot e le Actions hanno quote e condizioni diverse; non attivare servizi o API a pagamento. Le fasi agentiche, salvo la CI, sono avviate e controllate dai TM, non tramite webhook automatici. Chi usa un agente rimane responsabile del suo codice.
 
-Per provare il processo adesso, usare un task documentale: lettura degli artefatti,
-piano, approvazione del TM, modifica minima e revisione separata. L’esempio “Invia un
-saluto” serve a leggere e collegare i modelli; non è una funzionalità da implementare.
-Una Issue da sola non avvia agenti: il TM la passa manualmente allo strumento scelto.
-Non occorre un workflow “Saluto” per questa prova. Si verifica il percorso manuale
-Issue → piano → approvazione → modifica → test pertinenti → revisione umana, senza
-nuove integrazioni API o costi aggiuntivi. Le azioni su GitHub richiedono l’autorizzazione
-prevista da AGENTS.md; questo setup non crea Issue o PR automaticamente.
+## Stato di sviluppo
+
+- Frontend React/PWA e backend Java/Spring Boot da inizializzare previa approvazione di stack e comandi.
+- PostgreSQL proposto nell'SDD; l'eventuale uso di PostGIS richiede una decisione tecnica documentata.
+- I veri modelli UML, Category Partition e Test Frame devono ancora essere importati e approvati.
+- Trello resta lo strumento di coordinamento operativo e Ganttfather per la pianificazione.
