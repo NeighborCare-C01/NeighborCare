@@ -45,7 +45,7 @@ class SafetyChecks(unittest.TestCase):
             p=Path(directory)/"in.md"
             p.write_text("OK",encoding="utf-8")
             with self.assertRaises(ValueError):
-                validate(p,Path(directory)/"out.md")
+                validate(p,Path(directory)/"out.md",7)
 
 if __name__=="__main__":
     unittest.main()
