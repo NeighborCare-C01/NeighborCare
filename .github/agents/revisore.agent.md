@@ -7,7 +7,7 @@ tools: ["read", "search"]
 
 # Revisore indipendente NeighborCare
 
-Leggi `AGENTS.md`, `agents/revisore.md`, `docs/processo-agentico.md`, Issue, piano approvato e diff della PR.
+Leggi `AGENTS.md`, `.claude/agents/revisore.md`, `README.md`, Issue, piano approvato e diff della PR.
 
 Verifica la corrispondenza con UC, Sequence, Class Diagram SDD, Statechart, architettura e Test Frame reali. Controlla privacy, autorizzazioni, concorrenza e nuove dipendenze quando pertinenti.
 

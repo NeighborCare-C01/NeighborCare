@@ -20,7 +20,7 @@ I file con `XX`/`YY` e `modelli/sdd/class.puml` contengono **esempi inventati**,
 | Category Partition | [test/CP_UC_XX.md](test/CP_UC_XX.md) | Artefatti di testing del team |
 | Test Frame | [test/TF_UC_XX.md](test/TF_UC_XX.md) | Artefatti di testing del team |
 
-PDF originali: [RAD](rad/C01_RAD.pdf) e [SDD](sdd/C01_SDD.pdf), adottati come baseline definitiva dei PM: [decisione](BASELINE.md). I mockup restano consultabili nel RAD §3.11, pp. 75–84: non sono sostituiti dai Navigational Path.
+PDF originali: [RAD](rad/C01_RAD.pdf) e [SDD](sdd/C01_SDD.pdf), adottati come baseline definitiva dei PM: [decisione](../AGENTS.md). I mockup restano consultabili nel RAD §3.11, pp. 75–84: non sono sostituiti dai Navigational Path.
 
 ## Come usare la struttura
 

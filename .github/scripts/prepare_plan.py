@@ -7,12 +7,9 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 REFERENCES = [
     "AGENTS.md",
-    "docs/processo-agentico.md",
     ".github/agents/pianificatore.agent.md",
     "README.md",
     "docs/README.md",
-    "backend/README.md",
-    "frontend/README.md",
 ]
 ENDING = "In attesa di approvazione esplicita del TM. Nessuna modifica è stata effettuata."
 

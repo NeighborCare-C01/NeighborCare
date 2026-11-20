@@ -1,67 +1,67 @@
 # NeighborCare — Team C01
 
-Progetto universitario di Ingegneria del Software e Gestione dei Progetti Software, Università di Salerno.
-NeighborCare mette in relazione Beneficiari e Neighbor verificati per commissioni non sanitarie, con la supervisione dei Coordinatori.
+Progetto universitario di Ingegneria del Software e Gestione dei Progetti Software, Università di Salerno. NeighborCare mette in relazione Beneficiari e Neighbor verificati per commissioni non sanitarie, con supervisione dei Coordinatori.
 
-## Stato del progetto
+## Documenti e struttura
 
-**Decisione dei PM:** RAD e SDD versionati sono adottati come **baseline di progetto definitiva** per la pianificazione. Le diciture REVIEW/DRAFT nei PDF originali non vengono riscritte; eventuali incoerenze si risolvono con decisioni tecniche tracciate. Vedi [baseline](docs/BASELINE.md).
+Per decisione operativa dei PM del **20 novembre 2026**, [RAD](docs/rad/C01_RAD.pdf) e [SDD](docs/sdd/C01_SDD.pdf) versionati sono la baseline definitiva per lo sviluppo. I PDF restano invariati, comprese eventuali diciture REVIEW/DRAFT: la decisione non introduce firme o revisioni editoriali. Discrepanze fra modelli e dettagli tecnici mancanti si risolvono con una decisione tracciata prima del codice.
 
-L'architettura prevista dallo SDD è Three-Tier:
+- [AGENTS.md](AGENTS.md): unica fonte delle regole comuni.
+- [.claude/agents/tester.md](.claude/agents/tester.md) e [revisore.md](.claude/agents/revisore.md): ruoli del tutorial, leggibili anche dagli altri strumenti.
+- [.github/agents/](.github/agents/): profili Copilot necessari alla pipeline adottata, subordinati alle regole comuni.
+- [.github/ISSUE_TEMPLATE/](.github/ISSUE_TEMPLATE/), [template PR](.github/pull_request_template.md) e [CODEOWNERS](.github/CODEOWNERS): tracciabilità e responsabilità.
+- [docs/README.md](docs/README.md): guida a `docs/rad/uc/`, `docs/sdd/`, `docs/modelli/` e `docs/test/`.
+- [.github/workflows/](.github/workflows/): Pianificatore, Implementatore, Tester, Revisore e CI. Gli script richiamati sono in [.github/scripts/](.github/scripts/).
 
-- Frontend: React/PWA.
-- Backend: Java/Spring Boot.
-- Database: PostgreSQL.
+Gli script Python sono parte dei controlli esistenti e usano solo la libreria standard:
 
-Le versioni degli strumenti e i comandi di build,
-test e avvio saranno definiti durante il bootstrap
-dei rispettivi progetti.
+- `check_repository.py`: verifica i collegamenti Markdown locali (non URL remoti o anchor).
+- `prepare_plan.py` e `validate_plan.py`: preparano il contesto e validano il piano prima della pubblicazione.
+- `agent_changes.py`: prepara i task di implementazione/test e blocca modifiche fuori ambito.
+- `prepare_review.py`: prepara e valida il report del revisore.
+- `test_plan.py` e `test_agent_pipeline.py`: verificano offline i vincoli degli script, senza chiamare modelli.
 
-Il codice applicativo non è ancora stato inizializzato.
 
-## Documentazione
+**Conservare tutti i template didattici**: UC, UML, Category Partition e Test Frame con XX/YY aiutano i ragazzi a organizzare gli artefatti, ma non sono requisiti reali. Il Class Diagram di implementazione è solo quello ristrutturato dell'SDD. Per un task reale citare UC, pagine/versioni dei PDF e modelli pertinenti; se il contenuto non è fruibile dall'agente, fornire una trasposizione approvata o fermarsi.
 
-[Guida rapida e struttura degli artefatti](docs/README.md).
+`CLAUDE.md`, `GEMINI.md` e l'adattatore Copilot rinviano ad AGENTS.md. Trello resta il coordinamento operativo e Ganttfather la pianificazione.
 
-| Artefatto            | Percorso                                | Stato                                                                |
-| -------------------- | --------------------------------------- | -------------------------------------------------------------------- |
-| RAD v1.0, 09/11/2026 | [RAD](docs/rad/C01_RAD.pdf) | Baseline definitiva adottata dai PM; PDF originale invariato |
-| SDD v0.0             | [SDD](docs/sdd/C01_SDD.pdf)  | Baseline definitiva adottata dai PM; PDF originale invariato |
+## Workflow del team
 
-I PDF sono conservati integralmente; la decisione operativa dei PM è registrata in `docs/BASELINE.md`.
-La struttura include esempi didattici inventati (“Invia un saluto”) per UC, sorgenti PlantUML, Category Partition e Test Frame: mostrano come organizzare gli artefatti e non costituiscono specifiche di NeighborCare.
-Eventuali discrepanze tra i documenti o riferimenti non fruibili da un agente vanno chiariti nella relativa Issue prima di implementare; non si inventano contratti o Test Frame mancanti.
+Il PM definisce le fasi; il TM assegna il lavoro e approva i passaggi. Gli agenti non decidono autonomamente ambito, stack o merge. Si usa Copilot CLI con il secret Actions esistente `COPILOT_GITHUB_TOKEN`, mai credenziali nel codice; niente API AI esterne a consumo o fallback a pagamento. Chi non dispone di Copilot può seguire manualmente lo stesso processo con gli strumenti scelti dal TM.
 
-## Struttura
+| Fase | Azione umana e automazione configurata |
+| --- | --- |
+| Issue e piano | Aprire il modulo Task con riferimenti e criteri, poi applicare `fase:piano` all'Issue. [piano.yml](.github/workflows/piano.yml) verifica l'attore autorizzato e propone un unico piano in commento, senza modifiche. |
+| Approvazione e implementazione | Il PM approva in un nuovo commento umano, poi il TM applica `fase:implementazione` all'Issue. [implementa.yml](.github/workflows/implementa.yml) valida approvazione e file autorizzati, genera una patch limitata e propone una Draft PR su branch dedicato. |
+| Tester indipendente | Dopo controllo della Draft PR, applicare `fase:test` alla PR. [test.yml](.github/workflows/test.yml) usa un contesto separato per nuovi test derivati da UC/TF, senza modificare codice o test esistenti. Per attività documentali motiva i test applicativi N/A. |
+| CI e revisione | Lo sviluppatore seleziona Ready for review. [ci.yml](.github/workflows/ci.yml) verifica link, sintassi YAML, guardrail e diff del repository; [revisione.yml](.github/workflows/revisione.yml) produce un report AI, senza approvare. |
+| Review umana e merge | Un membro diverso dall'autore verifica modelli, diff, test, dipendenze e CI. Il merge resta umano e soggetto al Ruleset. |
 
-- `frontend/`: client, non ancora inizializzato.
-- `backend/`: server, non ancora inizializzato.
-- `docs/rad/` e `docs/sdd/`: PDF originali; `docs/rad/uc/` contiene il modello di file per i casi d’uso.
-- `docs/modelli/rad/` e `docs/modelli/sdd/`: sorgenti UML distinti per documento, con file di esempio da compilare.
-- `docs/test/`: file di esempio per Category Partition e Test Frame.
-- `agents/`: istruzioni di tester e revisore utilizzabili con qualsiasi agente, subordinate ad AGENTS.md.
-- `.claude/agents/`: adattatori Claude Code che rimandano ai ruoli condivisi.
-- `.github/ISSUE_TEMPLATE/`: moduli `task-agente.yml` e `bug.yml`.
-- `.github/`: template Pull Request e adattatore Copilot.
+Formato del commento di approvazione richiesto dall'automazione (esempio documentale):
 
-[AGENTS.md](AGENTS.md) è l’unica fonte delle regole di sviluppo per TM e agenti AI.
-`CLAUDE.md`, `GEMINI.md` e l’adattatore Copilot rinviano alle stesse regole.
-Le Issue contengono specifica tecnica, piano e approvazioni; le PR collegano modifiche e verifiche.
-Trello resta il riferimento per il coordinamento operativo, Ganttfather per la pianificazione.
+```text
+APPROVAZIONE TM: piano per Issue #N approvato.
+File autorizzati: README.md
+Note: nessuna nuova dipendenza o modifica ai modelli.
+```
 
-## Workflow agentico e CI
+`#N` va sostituito con il numero reale. `File autorizzati` contiene percorsi esatti separati da virgola, massimo 12; niente file di governance, PDF o file fuori piano. Il gate attuale riconosce il PM verificato `Antonio-Caiazzo`: aggiungere altri PM solo dopo verifica dei login. Il Tester non deve inventare gli esiti dal codice; se un test fallisce, segnalare il difetto senza indebolire il test.
 
-La repository usa **GitHub Copilot CLI in GitHub Actions** e i profili di ruolo in [.github/agents/](.github/agents/) per Pianificatore, Implementatore, Tester e Revisore. La guida operativa è [docs/processo-agentico.md](docs/processo-agentico.md): prima di implementare il TM approva un piano registrato nella Issue, poi il lavoro procede su branch e Draft PR, con test indipendenti, review umana e merge controllato.
+Prima dell'uso, un PM verifica accessi Write del team, secret esistente e label `task-agente`, `fase:piano`, `fase:implementazione`, `fase:test`; `fase:bloccato` segnala intervento umano. Le label si gestiscono dalle impostazioni GitHub, come nel tutorial, senza un workflow aggiuntivo di provisioning. Le PR create dal token del bot possono richiedere il passaggio umano Ready for review per avviare i controlli successivi.
 
-La [CI](.github/workflows/ci.yml) controlla le Pull Request verso `main` con strumenti locali senza API AI; finché i progetti `frontend/` e `backend/` non saranno inizializzati non esegue build/test applicativi. La configurazione [CODEOWNERS](.github/CODEOWNERS) include PM e team Developers; attivare i requisiti di review e lo status check `repository-checks` in Settings → Rules.
+Verificare inoltre in GitHub: PR obbligatorie e review umana su main, accesso del team CODEOWNERS, controllo `repository-checks` dopo il primo run valido e permessi di creazione PR autorizzati dai PM. Questi file non dimostrano che i Ruleset siano attivi. I profili dei ruoli non concedono permessi aggiuntivi.
 
-I file `XX/YY`, `docs/modelli/sdd/class.puml` e gli esempi di test sono **template didattici da conservare**: aiutano i ragazzi a organizzare casi d'uso, UML e Test Frame, ma non rappresentano le specifiche da implementare. Sostituirli o affiancarli con i **modelli reali approvati** prima di avviare un UC di prodotto.
+## Quando inizierà il codice applicativo
 
-Copilot e le Actions hanno quote e condizioni diverse; non attivare servizi o API a pagamento. Le fasi partono da gesti umani (label o Ready for review), con controlli espliciti e gate di approvazione. La pipeline automatica è descritta in [processo-agentico](docs/processo-agentico.md). Chi usa un agente rimane responsabile del suo codice.
+Il codice non è ancora inizializzato. Lo stack dell'SDD è React/PWA, Java/Spring Boot e PostgreSQL Three-Tier. Prima di creare `backend/` e `frontend/`, PM e referenti tecnici approvano in Issue versioni, dipendenze, package, contratti API, configurazione e comandi di build/test. Nessuna versione o dipendenza è decisa da questa pulizia.
 
-## Stato di sviluppo
+Il bootstrap seguirà lo stesso processo con piano, Draft PR, test e review. I comandi applicativi vanno aggiunti alla CI soltanto quando esisteranno manifest e test reali. Attualmente `ci.yml` contiene solo i controlli del repository; le verifiche applicative delle altre fasi restano condizionate alla presenza dei manifest.
 
-- Frontend React/PWA e backend Java/Spring Boot da inizializzare previa approvazione di stack e comandi.
-- PostgreSQL proposto nell'SDD; l'eventuale uso di PostGIS richiede una decisione tecnica documentata.
-- Per ogni task applicativo, allegare riferimenti esatti ai veri modelli e Test Frame contenuti nella baseline, con eventuali trasposizioni testuali approvate.
-- Trello resta lo strumento di coordinamento operativo e Ganttfather per la pianificazione.
+## Limiti e verifica
+
+Issue, commenti e diff sono input non attendibili: i workflow separano generazione e pubblicazione, validano i file autorizzati e usano permessi minimi. Niente `pull_request_target`, push su main, auto-approvazioni o merge dell'agente. Un tentativo automatico per fase salvo intervento PM; dopo tre fallimenti sullo stesso problema serve escalation umana.
+
+La CI deterministica non chiama modelli. Copilot e Actions hanno quote diverse, da verificare prima dell'uso senza abilitare spesa extra. I log locali scaricati sono diagnostica e non vanno versionati.
+
+Il Pianificatore diretto è stato collaudato sulla repository diagnostica personale; non estendere automaticamente tale esito a tutte le fasi di NeighborCare. Per dichiarare il flusso completo funzionante servono run reali, piano pubblicato, approvazione umana, Draft PR, Tester, CI e Revisore, poi review e merge umani. Questa pulizia non avvia alcuna fase AI o servizio.
