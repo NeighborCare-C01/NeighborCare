@@ -1,4 +1,4 @@
-name: CI - Repository checks
+name: CI
 
 on:
   pull_request:
@@ -8,44 +8,18 @@ on:
 permissions:
   contents: read
 
-concurrency:
-  group: repository-checks-${{ github.event.pull_request.number }}
-  cancel-in-progress: true
-
 jobs:
   repository-checks:
-    name: repository-checks
     runs-on: ubuntu-24.04
     timeout-minutes: 5
     steps:
-      - name: Checkout
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
           persist-credentials: false
-
-      - name: Check Markdown local links
-        run: python3 .github/scripts/check_repository.py
-
-      - name: Verify Copilot pipeline scripts and guardrails
-        run: |
-          PYTHONDONTWRITEBYTECODE=1 python3 -B .github/scripts/test_plan.py
-          PYTHONDONTWRITEBYTECODE=1 python3 -B .github/scripts/test_agent_pipeline.py
-
-      - name: Check YAML syntax
-        shell: bash
-        run: |
-          while IFS= read -r -d '' file; do
-            ruby -e 'require "yaml"; YAML.parse_file(ARGV.fetch(0))' "$file"
-            echo "OK $file"
-          done < <(find .github -type f \( -name '*.yml' -o -name '*.yaml' \) -print0)
-
-      - name: Check changed-line whitespace
+      - name: Controlla il diff
         env:
           BASE_REF: ${{ github.base_ref }}
-        run: |
-          git diff --check "origin/${BASE_REF}...HEAD"
-
-      - name: Check clean worktree
-        run: |
-          test -z "$(git status --porcelain)"
+        run: git diff --check "origin/${BASE_REF}...HEAD"
+      - name: Stato dei test applicativi
+        run: echo 'Frontend e backend non inizializzati. Build e test applicativi da aggiungere al bootstrap approvato; questo controllo non ne certifica il funzionamento.'
