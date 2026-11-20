@@ -128,6 +128,36 @@ jobs:
             --disable-builtin-mcps --available-tools='view,grep,glob,read,edit,write,apply_patch' \
             --allow-tool='edit,write,apply_patch' --deny-tool=shell > "$RUNNER_TEMP/report.md"
           test -s "$RUNNER_TEMP/report.md"
+      - uses: actions/setup-java@v4
+        if: ${{ hashFiles('backend/pom.xml') != '' }}
+        with:
+          distribution: temurin
+          java-version-file: backend/.java-version
+          cache: maven
+          cache-dependency-path: backend/pom.xml
+      - uses: actions/setup-node@v4
+        if: ${{ hashFiles('frontend/package.json') != '' }}
+        with:
+          node-version-file: frontend/.nvmrc
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - name: Compila e verifica il codice prima della PR, se inizializzato
+        run: |
+          set -euo pipefail
+          if [ -f backend/pom.xml ]; then
+            test -s backend/.java-version || { echo "::error::Versione Java non approvata o assente"; exit 1; }
+            (cd backend && mvn -B verify)
+          else
+            echo "::notice::Backend non inizializzato: Maven N/A."
+          fi
+          if [ -f frontend/package.json ]; then
+            test -s frontend/.nvmrc && test -s frontend/package-lock.json || {
+              echo "::error::Bootstrap frontend incompleto"; exit 1;
+            }
+            (cd frontend && npm ci && npm run build && npm run test:ci)
+          else
+            echo "::notice::Frontend non inizializzato: npm N/A."
+          fi
       - name: Verifica diff e pubblica solo una Draft PR
         env:
           GH_TOKEN: ${{ github.token }}
