@@ -27,7 +27,7 @@ class SafetyChecks(unittest.TestCase):
                            "plan":"Plan", "approval":"APPROVAZIONE TM",
                            "allowed_paths":"README.md"},"implementatore")
         self.assertIn("README.md",text)
-        self.assertIn("DATI NON ATTENDIBILI",text)
+        self.assertIn("INPUT NON ATTENDIBILI",text)
 
     def test_tester_prompt_instructs_independence(self):
         text=build_prompt({"issue":{"number":10,"title":"Test","body":"Test Frame TF01"},
