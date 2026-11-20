@@ -11,15 +11,85 @@ permissions:
 jobs:
   repository-checks:
     runs-on: ubuntu-24.04
-    timeout-minutes: 5
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
           persist-credentials: false
-      - name: Controlla il diff
+      - name: Diff senza errori di whitespace
         env:
           BASE_REF: ${{ github.base_ref }}
         run: git diff --check "origin/${BASE_REF}...HEAD"
-      - name: Stato dei test applicativi
-        run: echo 'Frontend e backend non inizializzati. Build e test applicativi da aggiungere al bootstrap approvato; questo controllo non ne certifica il funzionamento.'
+      - name: Sintassi YAML e collegamenti Markdown locali
+        run: |
+          set -euo pipefail
+          ruby -e 'require "yaml"; Dir.glob("{.github,docs}/**/*.{yml,yaml}", File::FNM_DOTMATCH).each { |f| YAML.parse_file(f); puts "YAML OK: #{f}" }'
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+          from urllib.parse import unquote
+          errors = []
+          for file in [Path("README.md"), Path("AGENTS.md"), *Path("docs").rglob("*.md")]:
+              text = file.read_text(encoding="utf-8")
+              for value in re.findall(r"(?<!!)\[[^\]]*\]\(([^)]+)\)", text):
+                  dest = unquote(value.split("#", 1)[0].strip())
+                  if not dest or "://" in dest or dest.startswith(("mailto:", "#")):
+                      continue
+                  if not (file.parent / dest).exists():
+                      errors.append(f"{file}: link non valido -> {dest}")
+          if errors:
+              raise SystemExit("\n".join(errors))
+          print("OK: link Markdown locali verificati")
+          PY
+      - name: Segnala modifiche a test gia esistenti
+        env:
+          BASE_REF: ${{ github.base_ref }}
+        run: |
+          set -euo pipefail
+          while IFS= read -r file; do
+            case "$file" in
+              backend/src/test/*|frontend/tests/*|frontend/src/*.test.*|frontend/src/*.spec.*)
+                if git cat-file -e "origin/${BASE_REF}:$file" 2>/dev/null; then
+                  echo "::warning::Test esistente modificato: $file — controllare che non siano state indebolite le asserzioni."
+                fi ;;
+            esac
+          done < <(git diff --name-only "origin/${BASE_REF}...HEAD")
+      - uses: actions/setup-java@v4
+        if: ${{ hashFiles('backend/pom.xml') != '' }}
+        with:
+          distribution: temurin
+          java-version-file: backend/.java-version
+          cache: maven
+          cache-dependency-path: backend/pom.xml
+      - name: Verifica reale del backend quando inizializzato
+        run: |
+          set -euo pipefail
+          if [ -f backend/pom.xml ]; then
+            test -s backend/.java-version || {
+              echo "::error::Bootstrap Java incompleto: manca backend/.java-version"; exit 1;
+            }
+            (cd backend && mvn -B verify)
+          else
+            echo "::notice::Backend non inizializzato: nessuna build o test Maven eseguito."
+          fi
+      - uses: actions/setup-node@v4
+        if: ${{ hashFiles('frontend/package.json') != '' }}
+        with:
+          node-version-file: frontend/.nvmrc
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - name: Verifica reale del frontend quando inizializzato
+        run: |
+          set -euo pipefail
+          if [ -f frontend/package.json ]; then
+            test -s frontend/.nvmrc && test -s frontend/package-lock.json || {
+              echo "::error::Bootstrap frontend incompleto: mancano versioni o lockfile"; exit 1;
+            }
+            cd frontend
+            npm ci
+            npm run build
+            npm run test:ci
+          else
+            echo "::notice::Frontend non inizializzato: nessuna build o test frontend eseguito."
+          fi

@@ -20,11 +20,11 @@ I file con `XX`/`YY` e `modelli/sdd/class.puml` contengono **esempi inventati**,
 | Category Partition | [test/CP_UC_XX.md](test/CP_UC_XX.md) | Artefatti di testing del team |
 | Test Frame | [test/TF_UC_XX.md](test/TF_UC_XX.md) | Artefatti di testing del team |
 
-PDF originali: [RAD](rad/C01_RAD.pdf) e [SDD](sdd/C01_SDD.pdf), adottati come baseline definitiva dei PM: [decisione](../AGENTS.md). I mockup restano consultabili nel RAD §3.11, pp. 75–84: non sono sostituiti dai Navigational Path.
+PDF originali: [RAD](rad/C01_RAD.pdf) e [SDD](sdd/C01_SDD.pdf), adottati come baseline definitiva dei PM: [decisione](../AGENTS.md). Non copiare pagine dei PDF in Markdown: citare la fonte e produrre file testuali separati soltanto quando verificati dal team. I mockup restano consultabili nel RAD §3.11, pp. 75–84: non sono sostituiti dai Navigational Path.
 
 ## Come usare la struttura
 
-1. **Conservare gli esempi didattici** e aggiungere i veri artefatti in file separati dopo verifica dei PDF. Rinominare `XX`/`YY` con ID e nomi originali; `AD_XX_…`, `Sottosistemi_…`, `Livelli_…` e `Deployment_…` sono nomi didattici, non nuovi ID del progetto. Un file per ciascun diagramma; riportare versione, sezione, pagina e stato di approvazione della fonte.
+1. **Conservare gli esempi didattici senza sovrascriverli** e creare i veri artefatti in nuovi file con ID e nomi originali; `AD_XX_…`, `Sottosistemi_…`, `Livelli_…` e `Deployment_…` sono nomi didattici, non nuovi ID del progetto. Un file per ciascun diagramma; riportare versione, sezione, pagina e stato di approvazione della fonte.
 2. Collegare nell’UC sequence, Class Diagram SDD, stati, navigazione e test pertinenti. Nel sequence indicare l’UC di riferimento: i loro ID possono essere diversi. L’Activity attuale descrive il processo precedente; quello proposto descrive il processo da realizzare. I sottosistemi mostrano le dipendenze logiche, i livelli separano le responsabilità e il deployment colloca il software sui nodi di esecuzione.
 3. Nella Issue usare **Copy permalink** sui file GitHub. Esempio di riferimenti: `docs/rad/uc/UC_XX_YY.md`, `docs/modelli/rad/SQ_XX_YY.puml`, `docs/modelli/sdd/class.puml`, `docs/test/TF_UC_XX.md`; aggiungere gli altri diagrammi pertinenti. I file didattici non autorizzano implementazioni del progetto.
 4. Dopo approvazione aggiornare insieme codice, modelli e riferimenti. Non sovrascrivere i PDF originali: aggiungere le revisioni approvate. Le regole comuni sono in [AGENTS.md](../AGENTS.md).
@@ -33,7 +33,7 @@ PDF originali: [RAD](rad/C01_RAD.pdf) e [SDD](sdd/C01_SDD.pdf), adottati come ba
 
 > Gli artefatti seguenti sono esempi inventati: non rappresentano requisiti reali di NeighborCare e non autorizzano a implementare la funzione del saluto.
 
-**Issue di collaudo:** [#4 — Aggiungere un esempio di Issue documentale al README](https://github.com/NeighborCare-C01/NeighborCare/issues/4).
+**Issue di collaudo:** [#4 — Aggiungere un esempio di Issue documentale al README](https://github.com/Team-C01/NeighborCare/issues/4).
 
 **Obiettivo:** mostrare come collegare una Issue agli artefatti dell’esempio “Invia un saluto”. **UC/requisiti reali: N/A**, attività esclusivamente documentale.
 

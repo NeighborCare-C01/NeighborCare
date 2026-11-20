@@ -3,8 +3,8 @@
 ' Qui va il Deployment Diagram SDD (§3.3.1): nodi di esecuzione, artefatti distribuiti e collegamenti.
 ' Esempio: la schermata gira nel browser del dispositivo utente; il servizio gira su un server.
 ' HTTPS e la distribuzione su due nodi sono scelte inventate solo per spiegare questa vista.
-' Per il progetto: usare nodi, ambienti, artefatti e protocolli dell’SDD approvato.
-' Rinominare il file secondo ID/nome originali del diagramma, senza inventare nuovi ID.
+' Per il progetto creare un file separato dai nodi, ambienti, artefatti e protocolli dell'SDD approvato.
+' Assegnare al nuovo file ID/nome originali del diagramma, senza rinominare questo esempio.
 @startuml
 title ESEMPIO INVENTATO - Deployment Diagram SDD
 node "Dispositivo utente" as Client {

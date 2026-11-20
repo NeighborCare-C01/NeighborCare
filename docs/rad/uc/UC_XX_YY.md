@@ -2,7 +2,7 @@
 
 > **ESEMPIO INVENTATO E SEMPLIFICATO:** “Invia un saluto”. Serve solo a mostrare come compilare e collegare i file. Non proviene dal RAD e non è una funzionalità di NeighborCare.
 
-Per un UC reale, sostituire questo contenuto con quello del RAD, rinominare il file con ID e nome originali e aggiornare i collegamenti. Fonte di questo esempio: nessuna, contenuto didattico.
+Per un UC reale, creare un nuovo file con ID e nome originali del RAD e aggiornare i collegamenti; non sovrascrivere questo esempio. Fonte di questo esempio: nessuna, contenuto didattico.
 
 ## Esempio: Invia un saluto
 

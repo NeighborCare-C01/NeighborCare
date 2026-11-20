@@ -8,7 +8,7 @@ Supporto di vicinato per commissioni non sanitarie tra Beneficiari e Neighbor, c
 
 Stack SDD: React/PWA, Java/Spring Boot, PostgreSQL, architettura Three-Tier. Frontend e backend non sono ancora inizializzati: versioni, dipendenze e comandi di avvio/build/test richiedono una decisione tecnica approvata. Non inventarli.
 
-Controllo disponibile dalla radice: `git diff --check`. La CI attuale verifica il diff; non certifica build, test applicativi o collegamenti Markdown.
+Controlli attuali: `git diff --check`, sintassi YAML e link Markdown locali. La CI esegue anche build e test applicativi soltanto quando sono presenti i manifest approvati; prima del bootstrap ne segnala esplicitamente l'assenza. Per il bootstrap backend servono `backend/pom.xml` e `backend/.java-version`; per il frontend `frontend/package.json`, `frontend/package-lock.json` e `frontend/.nvmrc`.
 
 ## Struttura
 
@@ -25,7 +25,7 @@ Usare ID, classi, attributi, tipi e metodi dei modelli reali. Il Class Diagram p
 ### Sempre
 
 - Leggere UC e modelli prima del codice. Segnalare contraddizioni o informazioni mancanti con file/pagina e fermare il lavoro dipendente.
-- Proporre un piano con ambito, file, modifiche, test e rischi; attendere l'approvazione del TM registrata nella Issue. Il TM applica `fase:implementazione` solo dopo averla approvata.
+- Proporre un piano con ambito, file, modifiche, test e rischi; attendere l'approvazione del TM registrata nella Issue. Il TM registra `APPROVAZIONE TM:` e `File autorizzati:` in un commento successivo al piano; solo dopo un membro Write applica `fase:implementazione`. Il workflow verifica autore dell'approvazione e file modificati.
 - Derivare i test dalle specifiche, in un contesto separato dall'Implementatore: un test per Test Frame, con ID nel nome. Riportare comandi, esiti reali e controlli non eseguiti; per task documentali motivare i test applicativi N/A.
 - Sincronizzare codice e modelli quando la modifica viene approvata. Dopo tre tentativi falliti sullo stesso problema fermarsi e chiedere intervento umano, riportando tentativi ed evidenze.
 
@@ -45,6 +45,6 @@ Piano approvato, modifiche entro ambito, modelli sincronizzati e controlli dispo
 
 ## Documenti di riferimento
 
-[RAD](docs/rad/C01_RAD.pdf), [SDD](docs/sdd/C01_SDD.pdf), [indice degli artefatti](docs/README.md). Se manca una trasposizione reale, citare sezione, pagina e versione del PDF e dichiarare eventuali limiti di lettura.
+[RAD](docs/rad/C01_RAD.pdf), [SDD](docs/sdd/C01_SDD.pdf), [indice degli artefatti](docs/README.md). Se manca una trasposizione reale, rimandare al PDF originale (file, sezione/versione pertinenti) e dichiarare eventuali limiti di lettura. Non copiare pagine o trascrizioni dei PDF in file Markdown.
 
 Conservare tutti gli esempi UC/UML/CP/TF XX/YY, incluso `docs/modelli/sdd/class.puml`: servono ai ragazzi per il formato, non sono requisiti NeighborCare implementabili.

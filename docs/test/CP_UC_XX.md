@@ -16,4 +16,4 @@ Fonte didattica: [UC_XX – Invia un saluto](../rad/uc/UC_XX_YY.md), passo 3 ed 
 
 **Vincolo:** le tre scelte sono mutuamente esclusive per un singolo input. In questo esempio esiste una sola categoria, quindi ciascun frame seleziona una sola scelta.
 
-I [Test Frame](TF_UC_XX.md) indicano i risultati attesi. Nel progetto reale sostituire categoria, scelte e vincoli con l’analisi del team e mantenere gli ID approvati.
+I [Test Frame](TF_UC_XX.md) indicano i risultati attesi. Nel progetto reale creare un file separato con categorie, scelte, vincoli e ID approvati, senza sovrascrivere questo esempio.

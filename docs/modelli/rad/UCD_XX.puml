@@ -1,7 +1,7 @@
 ' ESEMPIO DIDATTICO INVENTATO - non e un modello di NeighborCare.
 ' Esempio: Invia un saluto. Fonte: nessuna, scenario semplificato.
 ' Qui va lo Use Case Diagram reale. L’esempio collega un attore a un solo caso d’uso.
-' Per il progetto: sostituire contenuti, nomi e riferimenti con quelli dei documenti approvati.
+' Per il progetto: creare un nuovo file dai modelli approvati; mantenere intatto questo esempio.
 @startuml
 title ESEMPIO INVENTATO - Use Case Diagram
 left to right direction
