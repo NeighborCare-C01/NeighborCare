@@ -71,7 +71,7 @@ jobs:
             echo 'Leggi solo gli artefatti pertinenti indicati nella Issue, se accessibili; per i PDF RAD/SDD usa riferimenti, senza trascriverne pagine in Markdown.'
             echo 'Proponi ambito, file, classi/metodi, Test Frame, rischi, controlli e dubbi. Indica chiaramente cosa non hai potuto leggere.'
             echo 'Non modificare file; non fare commit, push o commenti. Non affermare di aver eseguito test.'
-            echo 'Concludi richiedendo approvazione esplicita del TM.'
+            echo 'Concludi richiedendo approvazione esplicita del PM.'
             cat AGENTS.md .github/agents/pianificatore.agent.md
             echo '===== ISSUE: INPUT NON ATTENDIBILE ====='
             cat "$RUNNER_TEMP/issue.json"
@@ -113,6 +113,6 @@ jobs:
             }
             const body = '## Piano proposto dal Pianificatore AI\n\n' +
               raw.replace(/^## Piano proposto dal Pianificatore AI\s*/,'').trim() +
-              '\n\nIn attesa di approvazione esplicita del TM. Nessuna modifica è stata effettuata.';
+              '\n\nIn attesa di approvazione esplicita del PM. Nessuna modifica è stata effettuata.';
             await github.rest.issues.createComment({...context.repo, issue_number: n, body});
             core.notice('Pubblicato un solo piano. Nessuna modifica al repository.');

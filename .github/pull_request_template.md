@@ -2,7 +2,7 @@
 
 <!-- Closes #numero se il task è concluso; altrimenti Refs #numero. -->
 Issue e UC/requisiti:
-Piano e approvazione del TM assegnato:
+Piano e approvazione del PM assegnato:
 
 ## Modifiche effettuate
 
@@ -23,7 +23,7 @@ Tentativi falliti sullo stesso problema e interventi umani:
 
 ## Checklist di review
 
-- [ ] Issue e artefatti pertinenti collegati; piano approvato dal TM prima delle modifiche.
+- [ ] Issue e artefatti pertinenti collegati; piano approvato dal PM prima delle modifiche.
 - [ ] Modifiche coerenti con requisiti e modelli approvati, entro l’ambito autorizzato.
 - [ ] Test derivati dalla specifica; copertura dei Test Frame ed esiti effettivi riportati.
 - [ ] Modelli interessati aggiornati nella stessa PR; deviazioni e nuove dipendenze approvate.
