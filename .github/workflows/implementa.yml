@@ -19,10 +19,10 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 30
     steps:
-      - name: Verifica piano, approvazione TM e ambito autorizzato
+      - name: Verifica piano, approvazione PM e ambito autorizzato
         uses: actions/github-script@v7
         env:
-          SECOND_TM_LOGIN: ${{ vars.NEIGHBORCARE_SECOND_TM_LOGIN }}
+          SECOND_PM_LOGIN: ${{ vars.NEIGHBORCARE_SECOND_PM_LOGIN }}
         with:
           script: |
             const fs = require('fs'), path = require('path');
@@ -43,32 +43,32 @@ jobs:
             const plan = comments.filter(c=>c.user?.login === 'github-actions[bot]' &&
               (c.body||'').startsWith('## Piano proposto dal Pianificatore AI')).at(-1);
             if (!plan) { core.setFailed('Piano AI assente: fermare l implementazione.'); return; }
-            // Aggiornare questo elenco SOLO dopo avere verificato i login GitHub degli altri TM.
-            const tmLogins = ['antonio-caiazzo', (process.env.SECOND_TM_LOGIN||'').toLowerCase()].filter(Boolean);
+            // Aggiornare questo elenco SOLO dopo avere verificato i login GitHub degli altri PM.
+            const pmLogins = ['antonio-caiazzo', (process.env.SECOND_PM_LOGIN||'').toLowerCase()].filter(Boolean);
             const unresolvedFeedback = comments.some(c =>
-              tmLogins.includes((c.user?.login||'').toLowerCase()) &&
+              pmLogins.includes((c.user?.login||'').toLowerCase()) &&
               c.created_at > plan.created_at &&
               /^RICHIESTA REVISIONE PIANO:/m.test(c.body||''));
             if (unresolvedFeedback) {
-              core.setFailed('Il TM ha richiesto modifiche al piano: attendere una nuova versione e approvazione.');
+              core.setFailed('Il PM ha richiesto modifiche al piano: attendere una nuova versione e approvazione.');
               return;
             }
             const approvals = comments.filter(c =>
-              tmLogins.includes((c.user?.login||'').toLowerCase()) &&
+              pmLogins.includes((c.user?.login||'').toLowerCase()) &&
               c.created_at > plan.created_at &&
-              /^APPROVAZIONE TM:/m.test(c.body||'') &&
+              /^APPROVAZIONE PM:/m.test(c.body||'') &&
               /^File autorizzati:/m.test(c.body||'')
             );
             const approval = approvals.at(-1);
             if (!approval) {
-              core.setFailed('Manca approvazione esplicita successiva al piano, firmata da un TM autorizzato.');
+              core.setFailed('Manca approvazione esplicita successiva al piano, firmata da un PM autorizzato.');
               return;
             }
             const {data: approvalPerm} = await github.rest.repos.getCollaboratorPermissionLevel({
               ...context.repo, username:approval.user.login
             });
             if (!['write','maintain','admin'].includes(approvalPerm.permission)) {
-              core.setFailed('Il TM che ha approvato non ha piu accesso Write.'); return;
+              core.setFailed('Il PM che ha approvato non ha piu accesso Write.'); return;
             }
             const match = (approval.body||'').match(/^File autorizzati:\s*(.+)$/m);
             const allowed = (match?.[1]||'').split(',').map(s=>s.trim()).filter(Boolean);
@@ -95,7 +95,7 @@ jobs:
             } catch (err) { if (err.status !== 404) throw err; }
             fs.writeFileSync(path.join(process.env.RUNNER_TEMP,'allowed_files.txt'),
               allowed.join('\n')+'\n',{mode:0o600});
-            core.notice('Piano e approvazione TM verificati. Ambito congelato a '+allowed.length+' file.');
+            core.notice('Piano e approvazione PM verificati. Ambito congelato a '+allowed.length+' file.');
       - uses: actions/checkout@v4
         with:
           persist-credentials: false
