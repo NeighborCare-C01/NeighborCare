@@ -33,3 +33,11 @@ Il PM verifica in GitHub: accessi Write, label `task-agente`, `fase:piano`, `fas
 Per approvare un piano, il TM pubblica un commento contenente una riga `APPROVAZIONE TM: piano per Issue #N approvato.` e una riga `File autorizzati: README.md` (oppure un elenco preciso di percorsi separati da virgola; massimo 12). Il commento deve essere successivo al piano AI.
 
 Le modifiche alla pipeline vanno provate con un task documentale approvato prima di dichiarare funzionante il flusso completo. I PDF RAD/SDD restano fonti originali: non copiarne pagine in file Markdown. Questa semplificazione non esegue chiamate AI e non modifica PDF o template didattici.
+
+## Glossario
+
+- **TM** — Team Manager
+- **RAD** — Requirements Analysis Document
+- **SDD** — System Design Document
+- **PR** — Pull Request
+- **CI** — Continuous Integration
