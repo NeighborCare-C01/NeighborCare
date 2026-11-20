@@ -34,6 +34,8 @@ Per approvare un piano, il TM pubblica un commento contenente una riga `APPROVAZ
 
 Le modifiche alla pipeline vanno provate con un task documentale approvato prima di dichiarare funzionante il flusso completo. I PDF RAD/SDD restano fonti originali: non copiarne pagine in file Markdown. Questa semplificazione non esegue chiamate AI e non modifica PDF o template didattici.
 
+Per piani respinti, test falliti e revisioni con rilievi, seguire la [procedura di iterazione e recupero](docs/agentic-workflow-iterazioni.md). Il TM autorizza esplicitamente ogni correzione sulla Draft PR; non indebolire i test per ottenere una CI verde.
+
 ## Glossario
 
 - **TM** — Team Manager

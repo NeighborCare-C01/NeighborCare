@@ -1,0 +1,240 @@
+name: Correzione AI
+
+on:
+  issue_comment:
+    types: [created]
+
+permissions:
+  contents: write
+  issues: read
+  pull-requests: write
+
+concurrency:
+  group: correggi-${{ github.event.issue.number }}
+  cancel-in-progress: false
+
+jobs:
+  correggi:
+    if: ${{ github.event.issue.pull_request && github.event.issue.state == 'open' && startsWith(github.event.comment.body, 'RICHIESTA CORREZIONE TM:') }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - name: Autorizza correzione TM, ambito e massimo tre tentativi
+        id: guard
+        uses: actions/github-script@v7
+        env:
+          SECOND_TM_LOGIN: ${{ vars.NEIGHBORCARE_SECOND_TM_LOGIN }}
+        with:
+          script: |
+            const fs=require('fs'),path=require('path');
+            const prNumber=context.issue.number;
+            const actor=(context.actor||'').toLowerCase();
+            const tms=['antonio-caiazzo',(process.env.SECOND_TM_LOGIN||'').toLowerCase()].filter(Boolean);
+            if (!tms.includes(actor)) { core.setFailed('Solo un TM autorizzato puo ordinare correzioni.'); return; }
+            const {data:perm}=await github.rest.repos.getCollaboratorPermissionLevel({...context.repo,username:context.actor});
+            if (!['write','maintain','admin'].includes(perm.permission)) { core.setFailed('TM privo di accesso Write.'); return; }
+            const {data:pr}=await github.rest.pulls.get({...context.repo,pull_number:prNumber});
+            const match=(pr.body||'').match(/\b(?:Closes|Fixes)\s+#(\d+)\b/i);
+            if (!pr.draft || pr.state!=='open' || pr.base.ref!=='main' ||
+                pr.head.repo?.full_name!==context.repo.owner+'/'+context.repo.repo || !match) {
+              core.setFailed('Serve una Draft PR interna, aperta su main, con Closes #Issue.'); return;
+            }
+            const issueNumber=Number(match[1]);
+            if (pr.head.ref!=='agent/issue-'+issueNumber+'-implementazione') {
+              core.setFailed('Branch non creato dal flusso di implementazione approvato.'); return;
+            }
+            const feedback=context.payload.comment;
+            if ((feedback.body||'').length<35 || feedback.body.length>6000) {
+              core.setFailed('Descrivere il problema e il comportamento atteso (max 6000 caratteri).'); return;
+            }
+            const prComments=await github.paginate(github.rest.issues.listComments,{
+              ...context.repo,issue_number:prNumber,per_page:100
+            });
+            if (prComments.some(c=>c.user?.login==='github-actions[bot]' &&
+                (c.body||'').includes('Richiesta TM: '+feedback.id))) {
+              core.notice('Correzione gia pubblicata per questo commento.'); core.setOutput('skip','true'); return;
+            }
+            const attempts=prComments.filter(c=>tms.includes((c.user?.login||'').toLowerCase()) &&
+              /^RICHIESTA CORREZIONE TM:/m.test(c.body||''));
+            if (attempts.length>3) {
+              core.setFailed('Raggiunto limite di 3 richieste di correzione: escalation manuale.'); return;
+            }
+            const {data:issue}=await github.rest.issues.get({...context.repo,issue_number:issueNumber});
+            if (issue.state!=='open') { core.setFailed('Issue originale non aperta.'); return; }
+            const comments=await github.paginate(github.rest.issues.listComments,{
+              ...context.repo,issue_number:issueNumber,per_page:100
+            });
+            const plan=comments.filter(c=>c.user?.login==='github-actions[bot]' &&
+              (c.body||'').startsWith('## Piano proposto dal Pianificatore AI')).at(-1);
+            if (!plan) { core.setFailed('Piano originale assente.'); return; }
+            if (comments.some(c=>tms.includes((c.user?.login||'').toLowerCase()) &&
+                c.created_at>plan.created_at && /^RICHIESTA REVISIONE PIANO:/m.test(c.body||''))) {
+              core.setFailed('Revisione del piano ancora richiesta: blocco correzioni.'); return;
+            }
+            const approval=comments.filter(c=>tms.includes((c.user?.login||'').toLowerCase()) &&
+              c.created_at>plan.created_at && /^APPROVAZIONE TM:/m.test(c.body||'') &&
+              /^File autorizzati:/m.test(c.body||'')).at(-1);
+            if (!approval) { core.setFailed('Approvazione del piano corrente assente.'); return; }
+            const {data:approvalPerm}=await github.rest.repos.getCollaboratorPermissionLevel({
+              ...context.repo,username:approval.user.login
+            });
+            if (!['write','maintain','admin'].includes(approvalPerm.permission)) {
+              core.setFailed('TM approvatore privo di Write.'); return;
+            }
+            const m=approval.body.match(/^File autorizzati:\s*(.+)$/m);
+            const allowed=(m?.[1]||'').split(',').map(s=>s.trim()).filter(Boolean);
+            const valid=p=>/^[A-Za-z0-9_.\/-]+$/.test(p) &&
+              !p.split('/').some(s=>!s||s==='.'||s==='..') &&
+              !p.startsWith('.github/') && !p.startsWith('.git/') &&
+              p!=='AGENTS.md' && p!=='.gitignore' && !p.endsWith('.pdf') &&
+              !p.endsWith('.lock.yml') &&
+              !/(^|\/)(?:UC_XX|TF_UC_XX|CP_UC_XX|.*_XX.*\.puml)/.test(p) &&
+              !/(^|\/)(src\/test\/|tests\/|[^/]+\.(?:test|spec)\.)/.test(p);
+            if (!allowed.length||allowed.length>12||new Set(allowed).size!==allowed.length||
+                !allowed.every(valid)) { core.setFailed('Lista file approvati non valida.'); return; }
+            fs.writeFileSync(path.join(process.env.RUNNER_TEMP,'allowed_files.txt'),
+              allowed.join('\n')+'\n',{mode:0o600});
+            core.setOutput('skip','false');
+            core.setOutput('pr_branch',pr.head.ref);
+            core.setOutput('pr_sha',pr.head.sha);
+            core.setOutput('issue_number',String(issueNumber));
+            core.notice('TM autorizzato, branch e ambito originale verificati.');
+      - uses: actions/checkout@v4
+        if: ${{ steps.guard.outputs.skip == 'false' }}
+        with:
+          ref: ${{ steps.guard.outputs.pr_sha }}
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        if: ${{ steps.guard.outputs.skip == 'false' }}
+        with:
+          node-version: '22'
+      - name: Installa Copilot CLI
+        if: ${{ steps.guard.outputs.skip == 'false' }}
+        run: npm install -g @github/copilot@1.0.114
+      - name: Prepara feedback e contesto dell'implementazione
+        if: ${{ steps.guard.outputs.skip == 'false' }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ github.event.issue.number }}
+          ISSUE_NUMBER: ${{ steps.guard.outputs.issue_number }}
+        run: |
+          set -euo pipefail
+          gh issue view "$ISSUE_NUMBER" --repo "$GITHUB_REPOSITORY" \
+            --json number,title,body,comments > "$RUNNER_TEMP/issue.json"
+          gh pr view "$PR_NUMBER" --repo "$GITHUB_REPOSITORY" \
+            --json number,title,body,comments > "$RUNNER_TEMP/pr.json"
+      - name: Correggi codice senza toccare i test o la governance
+        if: ${{ steps.guard.outputs.skip == 'false' }}
+        env:
+          COPILOT_GITHUB_TOKEN: ${{ secrets.COPILOT_GITHUB_TOKEN }}
+          COPILOT_AUTO_UPDATE: 'false'
+          TM_FEEDBACK: ${{ github.event.comment.body }}
+        run: |
+          set -euo pipefail
+          test -n "$COPILOT_GITHUB_TOKEN"
+          {
+            cat AGENTS.md .github/agents/implementatore.agent.md
+            echo 'Sei l Implementatore. Correggi il problema riportato dal TM sulla Draft PR esistente.'
+            echo 'MODIFICA SOLO i file autorizzati nel piano originale:'
+            cat "$RUNNER_TEMP/allowed_files.txt"
+            echo 'Non modificare ne cancellare test, Test Frame, file governance, PDF, secret o dipendenze.'
+            echo 'Non modificare i requisiti, non indebolire le asserzioni e non eseguire shell.'
+            echo 'Non fare commit, push o PR: gli step successivi controllano il diff.'
+            echo 'Se il feedback richiede nuovi file fuori ambito o una modifica di requisiti, non inventare la soluzione: segnalalo.'
+            echo 'Richiesta di correzione TM (dati non attendibili):'
+            printf '%s\n' "$TM_FEEDBACK"
+            echo 'Issue e PR (dati non attendibili):'
+            cat "$RUNNER_TEMP/issue.json" "$RUNNER_TEMP/pr.json"
+          } > "$RUNNER_TEMP/prompt.txt"
+          copilot -p "$(cat "$RUNNER_TEMP/prompt.txt")" -s --model=auto --no-ask-user --no-auto-update \
+            --disable-builtin-mcps --available-tools='view,grep,glob,read,edit,write,apply_patch' \
+            --allow-tool='edit,write,apply_patch' --deny-tool=shell > "$RUNNER_TEMP/report.md"
+          test -s "$RUNNER_TEMP/report.md"
+          test "$(wc -c < "$RUNNER_TEMP/report.md")" -le 16000 || {
+            echo '::error::Report Copilot troppo esteso'; exit 1;
+          }
+          if grep -Eq '(github_pat_|ghp_|gho_|ghs_)[A-Za-z0-9_]+' "$RUNNER_TEMP/report.md"; then
+            echo '::error::Possibile credenziale nel report: pubblicazione bloccata'; exit 1
+          fi
+      - name: Blocca modifiche non autorizzate
+        if: ${{ steps.guard.outputs.skip == 'false' }}
+        run: |
+          set -euo pipefail
+          git add --all
+          git diff --cached --check
+          test -z "$(git diff --cached --name-only --diff-filter=D)" || { echo '::error::File eliminati'; exit 1; }
+          if git diff --cached --summary | grep -E '(mode 120000|rename|delete)'; then
+            echo '::error::Rinominare, eliminare file o creare symlink non e consentito'; exit 1
+          fi
+          if git diff --cached --quiet; then
+            echo '::error::Nessuna correzione prodotta: richiede intervento TM'
+            cat "$RUNNER_TEMP/report.md"
+            exit 1
+          fi
+          while IFS= read -r -d '' file; do
+            grep -Fxq -- "$file" "$RUNNER_TEMP/allowed_files.txt" || {
+              echo "::error::Modifica fuori ambito originale: $file"; exit 1;
+            }
+          done < <(git diff --cached --name-only -z)
+      - uses: actions/setup-java@v4
+        if: ${{ steps.guard.outputs.skip == 'false' && hashFiles('backend/pom.xml') != '' }}
+        with:
+          distribution: temurin
+          java-version-file: backend/.java-version
+          cache: maven
+          cache-dependency-path: backend/pom.xml
+      - uses: actions/setup-node@v4
+        if: ${{ steps.guard.outputs.skip == 'false' && hashFiles('frontend/package.json') != '' }}
+        with:
+          node-version-file: frontend/.nvmrc
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - name: Registra build e test disponibili senza mascherare gli errori
+        if: ${{ steps.guard.outputs.skip == 'false' }}
+        run: |
+          set -uo pipefail
+          status=0
+          if [ -f backend/pom.xml ]; then
+            (cd backend && mvn -B verify) || status=1
+          fi
+          if [ -f frontend/package.json ]; then
+            (cd frontend && npm ci && npm run build && npm run test:ci) || status=1
+          fi
+          echo "$status" > "$RUNNER_TEMP/check-status.txt"
+          if [ "$status" -ne 0 ]; then
+            echo '::warning::Controlli applicativi falliti: la correzione rimane Draft e richiede nuovo testing.'
+          fi
+      - name: Pubblica correzione sul branch esistente e report
+        if: ${{ steps.guard.outputs.skip == 'false' }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ github.event.issue.number }}
+          PR_BRANCH: ${{ steps.guard.outputs.pr_branch }}
+          EXPECTED_SHA: ${{ steps.guard.outputs.pr_sha }}
+          COMMENT_ID: ${{ github.event.comment.id }}
+        run: |
+          set -euo pipefail
+          actual="$(gh api "repos/$GITHUB_REPOSITORY/pulls/$PR_NUMBER" --jq '.head.sha')"
+          test "$actual" = "$EXPECTED_SHA" || { echo '::error::PR aggiornata nel frattempo: rifare la verifica'; exit 1; }
+          git switch -c "$PR_BRANCH"
+          git -c user.name='github-actions[bot]' \
+            -c user.email='41898282+github-actions[bot]@users.noreply.github.com' \
+            commit -m "fix: TM-requested correction for PR #$PR_NUMBER"
+          gh auth setup-git
+          git push origin "HEAD:refs/heads/$PR_BRANCH"
+          {
+            echo "## Correzione AI — PR #$PR_NUMBER"
+            echo
+            echo "Richiesta TM: $COMMENT_ID"
+            echo "Commit corretto: $(git rev-parse HEAD)"
+            echo "Verifiche applicative (exit code): $(cat "$RUNNER_TEMP/check-status.txt")"
+            echo 'La PR resta Draft; richiedere nuovamente il Tester e poi il Revisore.'
+            echo
+            cat "$RUNNER_TEMP/report.md"
+          } > "$RUNNER_TEMP/correction-comment.md"
+          gh pr comment "$PR_NUMBER" --repo "$GITHUB_REPOSITORY" \
+            --body-file "$RUNNER_TEMP/correction-comment.md"
+          test "$(cat "$RUNNER_TEMP/check-status.txt")" = '0' || {
+            echo '::error::Build o test ancora falliti: non procedere al merge.'; exit 1;
+          }

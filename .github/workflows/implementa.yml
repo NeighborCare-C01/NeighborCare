@@ -40,11 +40,19 @@ jobs:
             const comments = await github.paginate(github.rest.issues.listComments,{
               ...context.repo, issue_number:n, per_page:100
             });
-            const plan = comments.find(c=>c.user?.login === 'github-actions[bot]' &&
-              (c.body||'').startsWith('## Piano proposto dal Pianificatore AI'));
+            const plan = comments.filter(c=>c.user?.login === 'github-actions[bot]' &&
+              (c.body||'').startsWith('## Piano proposto dal Pianificatore AI')).at(-1);
             if (!plan) { core.setFailed('Piano AI assente: fermare l implementazione.'); return; }
             // Aggiornare questo elenco SOLO dopo avere verificato i login GitHub degli altri TM.
             const tmLogins = ['antonio-caiazzo', (process.env.SECOND_TM_LOGIN||'').toLowerCase()].filter(Boolean);
+            const unresolvedFeedback = comments.some(c =>
+              tmLogins.includes((c.user?.login||'').toLowerCase()) &&
+              c.created_at > plan.created_at &&
+              /^RICHIESTA REVISIONE PIANO:/m.test(c.body||''));
+            if (unresolvedFeedback) {
+              core.setFailed('Il TM ha richiesto modifiche al piano: attendere una nuova versione e approvazione.');
+              return;
+            }
             const approvals = comments.filter(c =>
               tmLogins.includes((c.user?.login||'').toLowerCase()) &&
               c.created_at > plan.created_at &&
