@@ -82,7 +82,7 @@ jobs:
       - name: Validate report
         run: |
           python3 .github/scripts/prepare_review.py \
-            --validate "$RUNNER_TEMP/revisione/raw.md" "$RUNNER_TEMP/revisione/report.md"
+            --validate "$RUNNER_TEMP/revisione/raw.md" "$RUNNER_TEMP/revisione/report.md" "${{ github.event.pull_request.number }}"
       - uses: actions/upload-artifact@v4
         with:
           name: ai-review-report
