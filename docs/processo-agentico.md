@@ -1,42 +1,83 @@
-# Workflow agentico — NeighborCare C01
+# Workflow agentico — NeighborCare Team C01
 
-## Scopo e limiti
+## Riferimenti e decisioni dei PM
 
-Questa procedura adatta le slide 54–114 del corso GPS. Il **PM fissa le fasi** e il **TM assegna il lavoro e approva i passaggi critici**. Gli agenti non determinano in autonomia lo stato del task. Copilot è opzionale: chi non vi ha accesso può seguire lo stesso processo manualmente.
+Questo flusso applica il tutorial "Agentic Workflow in Project Management" (slide 48–100). RAD e SDD versionati sono la **baseline definitiva di riferimento adottata dai PM**: [decisione operativa](BASELINE.md). Le diciture interne dei PDF e gli esempi didattici `XX/YY` non vanno interpretati come nuovi requisiti.
 
-I Custom Agent Copilot sono in `.github/agents/` e riusano le regole comuni `AGENTS.md`. Sono profili, **non** workflow Actions. La presenza dei profili non avvia autonomamente task né garantisce permessi tecnici. Non è installata un'integrazione API per modelli a pagamento.
+Gli agenti sono strumenti, non decisori: le persone determinano fasi, ambito, approvazioni, modifiche ai modelli e merge. Tutte le modifiche significative passano da Issue, branch e PR. La repository usa GitHub Copilot CLI `1.0.114` con `model=auto`, **senza il proxy `gh-aw` che falliva nei test**. Il Secret previsto è `COPILOT_GITHUB_TOKEN`. Non condividere PAT, non usare servizi a consumo esterni.
 
-## Fasi per una funzionalità
+## Configurazione prima dell'uso
 
-1. **Issue e modelli — PM/TM:** aprire `task-agente` indicando UC/requisiti, versione e approvazione di RAD/SDD, file UML, ambito e Test Frame reali. Eventuali file didattici non sono fonti approvate.
-2. **Piano — Pianificatore:** in sola lettura confrontare i modelli e proporre file, metodi, dipendenze, test, rischi. Registrare il piano nella Issue; se i modelli sono incoerenti sospendere il task.
-3. **Approvazione — TM assegnato:** commentare esplicitamente che il piano (con versione/data) è approvato; solo allora autorizzare l'Implementatore. La label `fase:implementazione` è una traccia, non un trigger AI automatico.
-4. **Implementazione — Implementatore:** lavorare su branch dedicato, rispettare il piano e produrre una **Draft PR** collegata alla Issue. Nessuna modifica autonoma ai modelli o allo stack.
-5. **Testing — Tester indipendente:** il TM autorizza la fase; il Tester usa UC e Test Frame approvati, scrive un test per frame in un contesto separato e segnala i fallimenti senza rendere i test artificialmente verdi.
-6. **Review — CI e Revisore:** la PR viene marcata Ready for review. La CI esegue i controlli disponibili; il Revisore legge diff e modelli e produce rilievi senza modifiche.
-7. **Approvazione umana e merge:** un altro membro esegue una review GitHub **Approve**, controlla CI e conformità ai modelli. Merge solo dopo le condizioni del Ruleset; mai da parte dell'agente.
-8. **Tracciabilità:** la PR registra Issue, UC, riferimenti dei modelli, Test Frame, esiti, approvazioni e limiti. Aggiornare Trello/Project manualmente secondo gli accordi del team.
+1. Un PM verifica il Secret Actions `COPILOT_GITHUB_TOKEN`. Può controllare il nome, non recuperarne il valore.
+2. Un PM crea le label `task-agente`, `fase:piano`, `fase:implementazione`, `fase:test`, `fase:bloccato` con il workflow **Setup agentic labels - manual** (Actions → Run workflow → `approve=true`). La creazione è ripetibile e non chiama modelli.
+3. Un PM verifica le regole di `main` in Settings → Rules: PR obbligatoria, una review umana valida, Code Owner review e controllo obbligatorio `repository-checks`. La configurazione dei Ruleset non è codificata nel repository e va abilitata nelle impostazioni GitHub.
+4. Verificare che la squadra GitHub `@Team-C01/developers` abbia accesso Write e sia visibile per `CODEOWNERS`; aggiungere al file l'username GitHub del secondo PM **solo dopo verifica**.
+5. Settings → Actions → General: permessi predefiniti in sola lettura, consentire a GitHub Actions di creare PR **solo se i PM autorizzano l'Implementatore automatico**. Le PR restano in Draft; il bot non le approva e non fa merge.
 
-Per ogni fase usare una sessione separata quando serve indipendenza. In assenza di un agente Copilot abilitato si possono utilizzare manualmente i file `agents/tester.md` e `agents/revisore.md`.
+## 1. Pianificatore
 
-## Automazioni effettivamente presenti
+- **Azione umana:** PM/TM apre una Issue dal form `task-agente` con riferimenti ai PDF RAD/SDD, UC, diagrammi, ambito, criteri di accettazione e Test Frame pertinenti. Per task documentali, N/A motivato.
+- Aggiunge `fase:piano` all'Issue.
+- `.github/workflows/piano-direct.yml`: verifica permessi e commenti esistenti, esegue Copilot CLI in sola lettura, valida l'output e pubblica **un unico commento** contenente il piano.
+- Non modifica file. Se la label viene tolta, la pubblicazione viene bloccata. Se esiste già un piano, non richiama nuovamente il modello.
 
-- `.github/workflows/ci.yml`: solo controlli deterministici delle Pull Request su `main` (collegamenti locali Markdown, sintassi YAML, spazi superflui nelle modifiche, working tree pulito).
-- **Non** sono configurati workflow a pagamento `piano.yml`, `implementa.yml`, `test.yml`, `revisione.yml` con chiamate ai modelli; le fasi sono avviate dai TM.
-- Quando esisteranno `backend/pom.xml` e `frontend/package.json` con stack e comandi approvati, aggiungere alla CI build e test pertinenti; non simulare verifiche inesistenti.
-- Aggiungere lo status check `repository-checks` come obbligatorio nel Ruleset di `main` **dopo** la prima esecuzione corretta.
-- `.github/CODEOWNERS` identifica il PM iniziale per le configurazioni sensibili; attivare la review obbligatoria dei Code Owner solo dopo aver verificato account e organizzazione del team.
+## 2. Approvazione esplicita e Implementatore
 
-## Governance e costi
+Il PM legge il piano e confronta il task con il RAD/SDD, le dipendenze e i Test Frame. Se è corretto, pubblica **un nuovo commento umano** dopo quello AI, con questo formato (esempio per una modifica documentale):
 
-- I Custom Agent consumano le quote dell'account Copilot che li usa, nei limiti del piano disponibile. La pubblicità della repository non rende i crediti AI illimitati.
-- Non creare secret AI, non acquistare crediti o attivare fallback a pagamento. Il budget Actions dell'organizzazione deve restare controllato.
-- Le Actions non devono usare `pull_request_target` per eseguire codice della PR. Il token CI è in sola lettura e non esegue commit, push, merge o commenti.
-- Tre tentativi falliti sullo stesso problema richiedono escalation umana. Le PR generate devono essere comprese e spiegate dal loro responsabile.
-- Il Ruleset attivo protegge `main` con una review umana; non introdurre bypass senza decisione esplicita dei PM.
+```text
+APPROVAZIONE TM: piano per Issue #10 approvato.
+File autorizzati: README.md
+Note: nessuna nuova dipendenza o modifica ai modelli.
+```
 
-## Prima prova
+**Non usare gli esempi del saluto come requisiti di prodotto.** La riga `File autorizzati` contiene il percorso esatto di ogni file che l'Implementatore potrà toccare, separati da virgola, massimo 12 file. Non permettere file di governance, PDF RAD/SDD o file fuori dal piano. Attualmente il gate automatico riconosce l'account PM verificato `Antonio-Caiazzo`; aggiungere il secondo PM quando il suo login è confermato.
 
-Usare una Issue documentale delimitata e riferimenti **didattici dichiarati**, senza implementarli come funzionalità del prodotto. Passare da piano, approvazione, branch, Draft PR, verifica CI, review umana e merge. Solo dopo usare un UC reale con i modelli e Test Frame approvati.
+Uno sviluppatore autorizzato aggiunge `fase:implementazione` all'Issue **solo dopo questo commento**. Il workflow `.github/workflows/implementa.yml`:
 
-Riferimenti: `AGENTS.md`, `docs/README.md`, slide 54–114 del corso, guida GitHub Custom Agents e GitHub Actions.
+- rifiuta l'esecuzione se mancano piano, approvazione PM o lista esatta dei file;
+- esegue Copilot CLI senza shell e senza credenziali Git di scrittura, su un checkout temporaneo;
+- scarta diff fuori ambito, file di governance, PDF, modifiche troppo grandi o dipendenze/app senza bootstrap;
+- verifica collegamenti e build esistenti; consegna una patch limitata;
+- un job separato, con permessi GitHub temporanei, crea `agent/issue-N-implementazione` e una **Draft PR** con `Closes #N`. Non integra il codice in `main`.
+
+**Nota sul flusso GitHub:** se la PR viene creata dal `GITHUB_TOKEN`, gli eventi normali `pull_request` di quel token non avviano sempre la CI. È compito dello sviluppatore controllare e marcare la PR **Ready for review** dopo il Tester, in modo da avviare la CI e la Revisione. I PM devono verificare i permessi di creazione PR nelle impostazioni del repository.
+
+## 3. Tester indipendente
+
+Lo sviluppatore assegnato esamina la Draft PR e aggiunge la label `fase:test` **alla PR, non all'Issue**.
+
+`.github/workflows/test.yml` opera su PR Draft dello stesso repository e controlla che la Issue collegata contenga Test Frame realmente definiti. Un'altra sessione Copilot, distinta dall'Implementatore, può aggiungere solo **nuovi file di test** nei percorsi previsti; non può modificare codice applicativo o test già presenti. Le modifiche vengono validate prima di un commit sul branch della PR.
+
+Per una PR esclusivamente documentale il Tester non inventa JUnit: scrive il commento `Test Frame applicativi N/A` e il controllo effettivo è quello dei documenti. Se i test applicativi mancano, il task non è pronto al merge. Se un test fallisce si corregge il **codice**, non si indebolisce il test.
+
+## 4. CI e Revisore
+
+- Lo sviluppatore segna la PR **Ready for review**. La CI `.github/workflows/ci.yml` esegue sempre controlli repository e, solo quando esistono i progetti, build/test backend e frontend.
+- `.github/workflows/revisione.yml` legge la diff della PR, il task e le istruzioni di revisione, con un nuovo contesto Copilot separato, e pubblica un **report AI**.
+- Il report non costituisce Approve. Un membro del team diverso dall'autore esamina codice, modelli, copertura TF, build e dipendenze, poi approva o chiede modifiche su GitHub.
+- Il merge resta **esclusivamente umano**, dopo controlli CI e review richiesti dal Ruleset.
+
+I documenti PDF non vengono letti magicamente dalle automazioni: per requisiti complessi mettere nella Issue riferimenti precisi alle pagine e, quando serve, estratti testuali/versionati dei soli UC/diagrammi/TF pertinenti. Se la specifica non è fruibile dal ruolo, ci si ferma.
+
+## Bootstrap di Spring Boot, React e PostgreSQL
+
+**PM e team** confermano stack, versioni e contratti a partire dall'SDD. **Developers** preparano su branch dedicato `backend/pom.xml`, progetto Spring Boot e test di avvio, `frontend/package.json` con lockfile, configurazione database/dati sintetici, documentazione dei comandi e `.env.example` senza credenziali. Le nuove librerie necessitano di approvazione PM. La CI aggiunge controlli applicativi solo quando quei file esistono; non simula test inesistenti.
+
+## Esempio pratico di collaudo
+
+Issue #10 richiede un piccolo benvenuto nel README: PM aggiunge `fase:piano` → bot propone solo un piano → PM confronta e approva in un commento `APPROVAZIONE TM` con `File autorizzati: README.md` → sviluppatore avvia `fase:implementazione` → bot propone una sola modifica nella Draft PR → sviluppatore aggiunge `fase:test` alla PR → Tester segnala che i test applicativi sono N/A → sviluppatore seleziona Ready for review → CI e Revisore → un revisore **umano** approva → merge umano.
+
+Per fare un collaudo vero **non basta che i file YAML esistano**: occorre verificare in GitHub Actions il run di ciascuna fase e l'effettiva presenza dei commenti/PR, prima di dichiarare il flusso completo funzionante.
+
+## Costi e sicurezza
+
+- Un solo tentativo automatico per Issue/PR per fase, salvo intervento PM; timeout 10–18 minuti, niente fallback a pagamento.
+- Prompt injection: Issue, PR e diff trattati come dati non attendibili; generazione senza scrittura Git remota; pubblicazione separata con permessi minimi e validazioni.
+- `GITHUB_TOKEN` temporaneo, Secret Copilot solo nello step AI, niente `pull_request_target`, niente push su `main`.
+- Gli agenti non possono approvare, fare merge o decidere lo stack.
+- Dopo tre tentativi falliti sullo stesso problema, escalation a un PM; no retry infiniti o cambi di test per farli passare.
+
+## Stato della verifica
+
+Il **Pianificatore diretto** è stato testato end-to-end sulla repository diagnostica personale `Antonio-Caiazzo/agentic-workflow`: piano pubblicato e duplicati evitati. Le altre fasi necessitano di un collaudo con approvazione umana, PR dedicata, Secret e regole GitHub della repository Team-C01: **non dichiararle funzionanti finché non vengono eseguite con esito positivo**.
