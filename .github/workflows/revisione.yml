@@ -1,0 +1,124 @@
+# Reviewer independent of the Implementer conversation. No code writes or auto-approvals.
+name: Revisore - Copilot CLI diretto
+
+on:
+  pull_request:
+    types: [ready_for_review]
+
+permissions: {}
+
+concurrency:
+  group: revisore-${{ github.event.pull_request.number }}
+  cancel-in-progress: false
+
+jobs:
+  generate:
+    if: ${{ github.event.pull_request.head.repo.full_name == github.repository }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      pull-requests: read
+      issues: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Gather bounded PR diff and applicable specifications
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const path = require('path');
+            const pr = context.payload.pull_request;
+            const {data: permission} = await github.rest.repos.getCollaboratorPermissionLevel({
+              ...context.repo,username:context.actor
+            });
+            if (!['write','maintain','admin'].includes(permission.permission) || pr.draft) {
+              core.setFailed('Ready-for-review must be triggered by a repository writer.'); return;
+            }
+            const files = await github.paginate(github.rest.pulls.listFiles,{
+              ...context.repo,pull_number:pr.number,per_page:100
+            });
+            if (files.length > 80) { core.setFailed('PR too large for bounded review'); return; }
+            const diff = files.map(f=>
+              'FILE: '+f.filename+' ('+f.status+')\n'+(f.patch||'[Binary or large diff not available]')
+            ).join('\n\n');
+            if (diff.length > 55000) {
+              core.setFailed('Diff too long: request a smaller PR.'); return;
+            }
+            let issueBody = 'Issue not linked';
+            const match = (pr.body||'').match(/\b(?:Closes|Fixes|Refs)\s+#(\d+)\b/i);
+            if (match) {
+              const {data:issue}=await github.rest.issues.get({...context.repo,issue_number:Number(match[1])});
+              issueBody = 'Issue #'+issue.number+': '+issue.title+'\n'+(issue.body||'').slice(0,15000);
+            }
+            const folder=path.join(process.env.RUNNER_TEMP,'revisione');
+            fs.mkdirSync(folder,{recursive:true});
+            fs.writeFileSync(path.join(folder,'pr.json'),JSON.stringify({
+              number:pr.number,title:pr.title,body:(pr.body||'').slice(0,9000),
+              issue:issueBody,diff
+            }),{mode:0o600});
+      - name: Prepare independent read-only review prompt
+        run: |
+          python3 .github/scripts/prepare_review.py \
+            "$RUNNER_TEMP/revisione/pr.json" "$RUNNER_TEMP/revisione/prompt.txt"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install Copilot CLI
+        run: npm install -g @github/copilot@1.0.114
+      - name: Review without write tools
+        env:
+          COPILOT_GITHUB_TOKEN: ${{ secrets.COPILOT_GITHUB_TOKEN }}
+          COPILOT_AUTO_UPDATE: 'false'
+        run: |
+          set -euo pipefail
+          test -n "$COPILOT_GITHUB_TOKEN"
+          cd "$RUNNER_TEMP/revisione"
+          copilot -p "$(cat prompt.txt)" -s --model=auto --no-ask-user --no-auto-update \
+            --disable-builtin-mcps --available-tools='view,grep,glob' \
+            --deny-tool=write --deny-tool=edit --deny-tool=shell > raw.md
+      - name: Validate report
+        run: |
+          python3 .github/scripts/prepare_review.py \
+            --validate "$RUNNER_TEMP/revisione/raw.md" "$RUNNER_TEMP/revisione/report.md"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ai-review-report
+          path: ${{ runner.temp }}/revisione/report.md
+          retention-days: 1
+          if-no-files-found: error
+
+  publish:
+    needs: generate
+    runs-on: ubuntu-24.04
+    timeout-minutes: 3
+    permissions:
+      pull-requests: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: ai-review-report
+          path: ${{ runner.temp }}/revisione
+      - name: Post one review report without approval
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs=require('fs'),path=require('path');
+            const n=context.payload.pull_request.number;
+            const {data:pr}=await github.rest.pulls.get({...context.repo,pull_number:n});
+            if (pr.draft) { core.setFailed('PR is no longer ready for review'); return; }
+            const body=fs.readFileSync(path.join(process.env.RUNNER_TEMP,'revisione','report.md'),'utf8');
+            if (!body.startsWith('## Revisione AI — PR #'+n+'\n') ||
+                !body.trimEnd().endsWith('Revisione automatica non sostituisce approvazione umana.')) {
+              core.setFailed('Invalid review artifact'); return;
+            }
+            const existing=await github.paginate(github.rest.issues.listComments,{
+              ...context.repo,issue_number:n,per_page:100
+            });
+            if (existing.some(c=>(c.body||'').startsWith('## Revisione AI — PR #'+n))) {
+              core.notice('Existing report found; skipping duplicate'); return;
+            }
+            await github.rest.issues.createComment({...context.repo,issue_number:n,body});
+            core.notice('AI review report posted; a distinct human reviewer must still approve.');
