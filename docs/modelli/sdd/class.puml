@@ -1,7 +1,7 @@
 ' ESEMPIO DIDATTICO INVENTATO - non e un modello di NeighborCare.
 ' Esempio: Invia un saluto. Fonte: nessuna, scenario semplificato.
 ' Qui va il Class Diagram ristrutturato SDD, unico riferimento delle classi per lo sviluppo.
-' Per il progetto: sostituire contenuti, nomi e riferimenti con quelli dei documenti approvati.
+' Per il progetto: creare un nuovo file dai modelli approvati; mantenere intatto questo esempio.
 @startuml
 title ESEMPIO INVENTATO - Class Diagram SDD
 class SchermataSaluto {
