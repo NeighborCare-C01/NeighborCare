@@ -1,5 +1,12 @@
 # NeighborCare — Team C01
 
+## Ruoli e autorizzazioni
+
+- **PM — Project Manager:** Antonio Caiazzo ed Emanuele Iovane. Pianificano il lavoro e autorizzano esplicitamente i piani AI e le eventuali correzioni.
+- **TM — Team Member:** gli altri sei componenti del Team C01, organizzati nel team GitHub `developers`. Partecipano a sviluppo, testing e revisione tecnica.
+- Solo i due **PM autorizzati** possono rendere efficaci i commenti `APPROVAZIONE PM:` e `RICHIESTA CORREZIONE PM:`. Un TM non diventa approvatore per il solo accesso Write.
+- Il secondo PM deve essere registrato con il proprio username GitHub nella variabile `NEIGHBORCARE_SECOND_PM_LOGIN` prima di approvare i workflow.
+
 ## Contesto
 
 Supporto di vicinato per commissioni non sanitarie tra Beneficiari e Neighbor, con supervisione dei Coordinatori. RAD e SDD versionati sono la baseline adottata dai PM il 20 novembre 2026; i PDF e le diciture interne restano invariati.
@@ -25,11 +32,11 @@ Usare ID, classi, attributi, tipi e metodi dei modelli reali. Il Class Diagram p
 ### Sempre
 
 - Leggere UC e modelli prima del codice. Segnalare contraddizioni o informazioni mancanti con file/pagina e fermare il lavoro dipendente.
-- Proporre un piano con ambito, file, modifiche, test e rischi; attendere l'approvazione del TM registrata nella Issue. Il TM registra `APPROVAZIONE TM:` e `File autorizzati:` in un commento successivo al piano; solo dopo un membro Write applica `fase:implementazione`. Il workflow verifica autore dell'approvazione e file modificati.
+- Proporre un piano con ambito, file, modifiche, test e rischi; attendere l'approvazione del PM registrata nella Issue. Il PM registra `APPROVAZIONE PM:` e `File autorizzati:` in un commento successivo al piano; solo dopo un membro Write applica `fase:implementazione`. Il workflow verifica autore dell'approvazione e file modificati.
 - Derivare i test dalle specifiche, in un contesto separato dall'Implementatore: un test per Test Frame, con ID nel nome. Riportare comandi, esiti reali e controlli non eseguiti; per task documentali motivare i test applicativi N/A.
 - Sincronizzare codice e modelli quando la modifica viene approvata. Dopo tre tentativi falliti sullo stesso problema fermarsi e chiedere intervento umano, riportando tentativi ed evidenze.
-- Se il piano viene respinto, il TM scrive `RICHIESTA REVISIONE PIANO:` sulla Issue in `fase:piano`; approvare soltanto la nuova versione, mai riutilizzare una vecchia approvazione.
-- Se falliscono test, CI o revisione, la PR deve essere Draft: il TM autorizza la correzione con `RICHIESTA CORREZIONE TM:` sulla PR. L'Implementatore modifica soltanto i file originariamente autorizzati e non tocca i test. Ripetere `fase:test` e successivamente Ready for review sul nuovo commit.
+- Se il piano viene respinto, il PM scrive `RICHIESTA REVISIONE PIANO:` sulla Issue in `fase:piano`; approvare soltanto la nuova versione, mai riutilizzare una vecchia approvazione.
+- Se falliscono test, CI o revisione, la PR deve essere Draft: il PM autorizza la correzione con `RICHIESTA CORREZIONE PM:` sulla PR. L'Implementatore modifica soltanto i file originariamente autorizzati e non tocca i test. Ripetere `fase:test` e successivamente Ready for review sul nuovo commit.
 - Il processo di recupero, i limiti di tre revisioni e i controlli manuali sono descritti in [Iterazioni agentiche](docs/agentic-workflow-iterazioni.md).
 
 ### Chiedi prima
