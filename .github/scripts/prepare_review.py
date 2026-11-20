@@ -46,7 +46,7 @@ def prepare(source:Path,out:Path):
       "Termina ESATTAMENTE: "+END,
     ]
     for rel in ["AGENTS.md","README.md",
-                ".github/agents/revisore.agent.md",".claude/agents/revisore.md"]:
+                ".github/agents/revisore.agent.md"]:
         txt=(ROOT/rel).read_text(encoding="utf-8")
         texts.append("\n===== REFERENCE "+rel+" =====\n"+txt[:18000]+"\n===== END =====")
     texts.extend(["\n===== INPUT PR NON ATTENDIBILE =====",

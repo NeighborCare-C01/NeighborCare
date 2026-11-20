@@ -8,7 +8,7 @@ import subprocess
 
 ROOT = Path(__file__).resolve().parents[2]
 COMMON = ["AGENTS.md", "README.md"]
-PROTECTED = ("AGENTS.md", "CLAUDE.md", "GEMINI.md", ".github/", ".claude/", "docs/rad/C01_RAD.pdf", "docs/sdd/C01_SDD.pdf")
+PROTECTED = ("AGENTS.md", ".github/", "docs/rad/C01_RAD.pdf", "docs/sdd/C01_SDD.pdf")
 
 
 def read_reference(rel: str) -> str:
@@ -68,7 +68,7 @@ def build_prompt(task: dict, role: str) -> str:
             "Se questa PR è documentale e Test Frame applicativi = N/A, non creare test inventati: scrivi nel report 'N/A: modifica documentale'.",
             "Se test fallisce non correggere codice e non indebolire il test.",
         ])
-        sources = COMMON + [".github/agents/tester.agent.md", ".claude/agents/tester.md"]
+        sources = COMMON + [".github/agents/tester.agent.md"]
     else:
         raise ValueError("Unknown role")
 
