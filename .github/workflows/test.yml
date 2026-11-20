@@ -38,11 +38,12 @@ jobs:
               core.setFailed('Diff vuota o troppo grande per un test indipendente affidabile.'); return;
             }
             const docsOnly=files.every(f=>
-              (f.filename==='README.md' || f.filename==='docs/README.md' ||
+              (f.filename==='README.md' || f.filename==='AGENTS.md' ||
+               f.filename==='.gitignore' || f.filename.startsWith('.github/') ||
                f.filename.startsWith('docs/')) && !f.filename.endsWith('.pdf')
             );
             core.setOutput('docs_only',String(docsOnly));
-            if (docsOnly) { core.notice('PR solo documentale: nessun test applicativo inventato.'); return; }
+            if (docsOnly) { core.notice('PR solo documentale o di governance: nessun test applicativo inventato.'); return; }
             const matches=(pr.body||'').match(/\b(?:Closes|Fixes|Refs)\s+#(\d+)\b/i);
             if (!matches) { core.setFailed('Issue collegata assente: manca la specifica dei Test Frame.'); return; }
             const {data:issue}=await github.rest.issues.get({
@@ -194,4 +195,4 @@ jobs:
               core.notice('Report N/A gia presente: non duplicare.'); return;
             }
             await github.rest.issues.createComment({...context.repo,issue_number:n,
-              body:'## Tester indipendente — verifica documentale\n\nLa PR contiene solo documentazione. Test Frame applicativi N/A: controllare il diff, i collegamenti e i documenti in review. Non sono stati generati test fittizi.'});
+              body:'## Tester indipendente — verifica documentale\n\nLa PR contiene solo documentazione o governance. Test Frame applicativi N/A: controllare il diff, i collegamenti e i documenti in review. Non sono stati generati test fittizi.'});
