@@ -16,4 +16,4 @@ Precondizione comune: schermata del saluto aperta. Azione comune: inserire il da
 
 Per esempio, il futuro test automatico associato a `TF_XX_01` inserirebbe “Ada”, premerebbe “Saluta” e verificherebbe il testo mostrato. Questo file documenta il frame, non implementa il test.
 
-Nel progetto reale usare i frame del team e collegare ogni test ai relativi ID. L’esito atteso deve provenire dalla specifica approvata.
+Nel progetto reale creare un file separato con i frame approvati e collegare ogni test ai relativi ID. L’esito atteso deve provenire dalla specifica approvata.
