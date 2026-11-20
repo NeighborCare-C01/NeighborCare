@@ -9,9 +9,9 @@
 /backend/ @Team-C01/developers
 /frontend/ @Team-C01/developers
 
-# Governance, file agenti e workflow: controllo PM.
-/AGENTS.md @Antonio-Caiazzo
-/.github/ @Antonio-Caiazzo
+# Governance, file agenti e workflow: review PM o Developers (evita blocco se il PM e autore).
+/AGENTS.md @Antonio-Caiazzo @Team-C01/developers
+/.github/ @Antonio-Caiazzo @Team-C01/developers
 
 # Il README contiene le istruzioni operative consolidate.
-/README.md @Antonio-Caiazzo
+/README.md @Antonio-Caiazzo @Team-C01/developers
