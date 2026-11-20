@@ -89,7 +89,7 @@ jobs:
             cd frontend
             npm ci
             npm run build
-            npm test -- --run
+            npm run test:ci
           else
             echo "::notice::Frontend non inizializzato: nessuna build o test frontend eseguito."
           fi
