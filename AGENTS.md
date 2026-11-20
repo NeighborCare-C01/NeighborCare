@@ -28,6 +28,9 @@ Usare ID, classi, attributi, tipi e metodi dei modelli reali. Il Class Diagram p
 - Proporre un piano con ambito, file, modifiche, test e rischi; attendere l'approvazione del TM registrata nella Issue. Il TM registra `APPROVAZIONE TM:` e `File autorizzati:` in un commento successivo al piano; solo dopo un membro Write applica `fase:implementazione`. Il workflow verifica autore dell'approvazione e file modificati.
 - Derivare i test dalle specifiche, in un contesto separato dall'Implementatore: un test per Test Frame, con ID nel nome. Riportare comandi, esiti reali e controlli non eseguiti; per task documentali motivare i test applicativi N/A.
 - Sincronizzare codice e modelli quando la modifica viene approvata. Dopo tre tentativi falliti sullo stesso problema fermarsi e chiedere intervento umano, riportando tentativi ed evidenze.
+- Se il piano viene respinto, il TM scrive `RICHIESTA REVISIONE PIANO:` sulla Issue in `fase:piano`; approvare soltanto la nuova versione, mai riutilizzare una vecchia approvazione.
+- Se falliscono test, CI o revisione, la PR deve essere Draft: il TM autorizza la correzione con `RICHIESTA CORREZIONE TM:` sulla PR. L'Implementatore modifica soltanto i file originariamente autorizzati e non tocca i test. Ripetere `fase:test` e successivamente Ready for review sul nuovo commit.
+- Il processo di recupero, i limiti di tre revisioni e i controlli manuali sono descritti in [Iterazioni agentiche](docs/agentic-workflow-iterazioni.md).
 
 ### Chiedi prima
 
