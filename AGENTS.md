@@ -14,7 +14,7 @@ Controlli attuali: `git diff --check`, sintassi YAML e link Markdown locali. La 
 
 - `frontend/` e `backend/`: destinazione del codice, attualmente solo `.gitkeep`.
 - `docs/rad/uc/`: casi d'uso; `docs/modelli/`: UML RAD/SDD; `docs/test/`: Category Partition e Test Frame.
-- `.github/agents/tester.agent.md` e `revisore.agent.md`: ruoli Copilot separati. I prompt di piano e implementazione sono nei workflow, come nel tutorial.
+- `.github/agents/`: quattro profili Copilot separati — Pianificatore, Implementatore, Tester e Revisore. Ogni workflow legge esplicitamente il proprio profilo; le regole comuni sono qui in `AGENTS.md`.
 
 ## Convenzioni
 
