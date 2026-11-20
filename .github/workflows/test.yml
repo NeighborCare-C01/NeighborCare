@@ -147,7 +147,7 @@ jobs:
             (cd backend && mvn -B verify) || status=1
           fi
           if [ -f frontend/package.json ]; then
-            (cd frontend && npm ci && npm run build && npm test -- --run) || status=1
+            (cd frontend && npm ci && npm run build && npm run test:ci) || status=1
           fi
           echo "$status" > "$RUNNER_TEMP/test-exit.txt"
           if [ "$status" -eq 1 ]; then
