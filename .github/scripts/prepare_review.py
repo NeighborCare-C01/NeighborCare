@@ -11,15 +11,14 @@ END="Revisione automatica non sostituisce approvazione umana."
 
 def validate(raw:Path, out:Path, number:int):
     body=raw.read_text(encoding="utf-8").strip()
-    if len(body)<160 or len(body)>16000:
+    if len(body)<350 or len(body)>16000:
         raise ValueError("Reviewer output too short or too long: no publication")
     import re
     if re.search(r"(?i)(github_pat_|ghp_|gho_|ghs_|ghu_|ghr_)[A-Za-z0-9_]+", body):
         raise ValueError("Reviewer output contains credential-like text")
     if not re.search(r"(diff|file|modelli|test|risch|requisit|document)", body, re.IGNORECASE):
         raise ValueError("Reviewer did not provide a meaningful technical report")
-    if body.startswith(HEADER):
-        body="\n".join(body.splitlines()[1:]).strip()
+    body="\n".join(line for line in body.splitlines() if not line.strip().startswith(HEADER)).strip()
     if body.endswith(END):
         body=body[:-len(END)].strip()
     normalized=HEADER+str(number)+"\n\n"+body+"\n\n"+END+"\n"
