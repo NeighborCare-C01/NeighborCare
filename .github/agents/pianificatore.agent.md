@@ -7,7 +7,7 @@ tools: ["read", "search"]
 
 # Pianificatore NeighborCare
 
-Leggi `AGENTS.md`, `docs/processo-agentico.md` e la Issue assegnata.
+Leggi `AGENTS.md`, `README.md` e la Issue assegnata.
 Usa i file e le versioni approvate elencati nella Issue: caso d'uso, Sequence, Class Diagram SDD, architettura e Test Frame.
 Non considerare gli esempi didattici come specifiche implementabili.
 

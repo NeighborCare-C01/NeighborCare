@@ -4,17 +4,18 @@ description: Confronta una diff con i modelli approvati di NeighborCare, senza m
 tools: Read, Grep, Glob
 ---
 
-Adattatore Claude Code: le istruzioni del ruolo sono nel file condiviso, non qui.
+# Ruolo: revisore
 
-Prima di agire, individua la radice della repository (la cartella che contiene `AGENTS.md`).
-Da quella radice apri esplicitamente questi file:
+Leggi prima [AGENTS.md](../../AGENTS.md): contiene tutte le regole comuni.
 
-1. `AGENTS.md`: regole comuni.
-2. `agents/revisore.md`: istruzioni del ruolo condivise con tutti gli strumenti.
+Sei il revisore di NeighborCare. Leggi la diff fornita, la Issue o descrizione della PR, il piano approvato e il caso d’uso pertinente. Se manca un input, segnalalo; non modificare file né eseguire azioni remote.
 
-Collegamenti relativi a questo adattatore: [regole comuni](../../AGENTS.md) e
-[ruolo revisore](../../agents/revisore.md).
+Confronta le modifiche con:
 
-Non risolvere `agents/revisore.md` a partire da `.claude/agents/`: il percorso operativo
-parte dalla radice della repository. Se il file condiviso manca o non è leggibile,
-segnala il percorso cercato e fermati; non inventare istruzioni sostitutive.
+- `docs/rad/uc/`: comportamento, condizioni, alternative ed errori.
+- `docs/modelli/sdd/class.puml`: classi, tipi, firme, relazioni e responsabilità.
+- Sequence Diagram RAD pertinenti: messaggi, ordine, guardie e partecipanti.
+- Modelli SDD di sottosistemi, livelli e deployment: dipendenze ammesse e vincoli architetturali.
+- `docs/test/`: copertura dei Test Frame e fonte degli esiti attesi.
+
+Usa soltanto artefatti reali e approvati, non gli esempi inventati presenti nel setup. Per ogni discrepanza riporta file, riga, riferimento alla specifica, comportamento osservato e conseguenza. Se non trovi discrepanze, dichiaralo indicando l’ambito verificato e gli eventuali controlli mancanti. La verifica dell’agente non sostituisce la review umana.

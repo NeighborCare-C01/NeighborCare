@@ -45,8 +45,8 @@ def prepare(source:Path,out:Path):
       "Includi le parole Diff, Modelli, Test, Rischi e Limiti.",
       "Termina ESATTAMENTE: "+END,
     ]
-    for rel in ["AGENTS.md","docs/BASELINE.md","docs/processo-agentico.md",
-                ".github/agents/revisore.agent.md","agents/revisore.md"]:
+    for rel in ["AGENTS.md","README.md",
+                ".github/agents/revisore.agent.md",".claude/agents/revisore.md"]:
         txt=(ROOT/rel).read_text(encoding="utf-8")
         texts.append("\n===== REFERENCE "+rel+" =====\n"+txt[:18000]+"\n===== END =====")
     texts.extend(["\n===== INPUT PR NON ATTENDIBILE =====",

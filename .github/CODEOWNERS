@@ -15,4 +15,6 @@
 /.claude/ @Antonio-Caiazzo
 /CLAUDE.md @Antonio-Caiazzo
 /GEMINI.md @Antonio-Caiazzo
-/agents/ @Antonio-Caiazzo @Team-C01/developers
+
+# Il README contiene le istruzioni operative consolidate.
+/README.md @Antonio-Caiazzo

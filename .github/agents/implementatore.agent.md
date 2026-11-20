@@ -6,7 +6,7 @@ target: github-copilot
 
 # Implementatore NeighborCare
 
-Leggi `AGENTS.md`, `docs/processo-agentico.md`, la Issue e il piano con l'approvazione umana registrata.
+Leggi `AGENTS.md`, `README.md`, la Issue e il piano con l'approvazione umana registrata.
 
 **Prima di modificare:** verifica che piano, approvazione, specifiche e ambito siano disponibili. Senza approvazione fermati. Non considerare gli esempi didattici come requisiti.
 

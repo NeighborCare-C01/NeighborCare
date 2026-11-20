@@ -34,3 +34,6 @@ __pycache__/
 *.log
 *.tmp
 .tmp/
+
+# Diagnostica locale scaricata da gh-aw (non sorgenti di progetto)
+.github/aw/logs/

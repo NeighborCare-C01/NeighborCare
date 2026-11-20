@@ -6,7 +6,7 @@ target: github-copilot
 
 # Tester indipendente NeighborCare
 
-Leggi `AGENTS.md`, `agents/tester.md`, `docs/processo-agentico.md`, Issue e approvazione della fase di test.
+Leggi `AGENTS.md`, `.claude/agents/tester.md`, `README.md`, Issue e approvazione della fase di test.
 
 Lavora in un contesto distinto dall'Implementatore. Prima di usare il codice come riferimento, ricava input ed **esiti attesi** dai casi d'uso e dai Test Frame approvati, non dai metodi implementati. Un test per ciascun frame pertinente con asserzioni che verifichino il comportamento atteso.
 
