@@ -1,0 +1,171 @@
+# One issue label -> one read-only Copilot inference -> at most one validated GitHub comment.
+# No gh-aw, no third-party AI APIs. The old gh-aw lock is intentionally removed.
+name: Pianificatore NeighborCare - Copilot CLI diretto
+
+on:
+  issues:
+    types: [labeled]
+
+permissions: {}
+
+concurrency:
+  group: pianificatore-diretto-${{ github.event.issue.number }}
+  cancel-in-progress: false
+
+jobs:
+  generate:
+    if: ${{ github.event.label.name == 'fase:piano' }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      issues: read
+    outputs:
+      should_publish: ${{ steps.guard.outputs.should_publish }}
+    steps:
+      - name: Checkout trusted default branch (no persisted credentials)
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Authorize label actor and prevent duplicate comments
+        id: guard
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const issueNumber = context.issue.number;
+            const actor = context.actor;
+            const {data: permission} = await github.rest.repos.getCollaboratorPermissionLevel({
+              ...context.repo, username: actor
+            });
+            if (!['admin', 'maintain', 'write'].includes(permission.permission)) {
+              core.setFailed('Only authorized repository writers may trigger the planner.');
+              return;
+            }
+            const {data: issue} = await github.rest.issues.get({
+              ...context.repo, issue_number: issueNumber
+            });
+            if (issue.pull_request || issue.state !== 'open') {
+              core.setFailed('Only open Issues are supported.');
+              return;
+            }
+            const comments = await github.paginate(github.rest.issues.listComments, {
+              ...context.repo, issue_number: issueNumber, per_page: 100
+            });
+            if (comments.some(c => (c.body || '').trimStart().startsWith('## Piano proposto dal Pianificatore AI'))) {
+              core.notice('A plan comment already exists for this Issue; skipping the AI call.');
+              core.setOutput('should_publish', 'false');
+              return;
+            }
+            const fs = require('fs');
+            const path = require('path');
+            const folder = path.join(process.env.RUNNER_TEMP, 'plan');
+            fs.mkdirSync(folder, {recursive: true});
+            fs.writeFileSync(path.join(folder, 'issue.json'), JSON.stringify({
+              number: issue.number,
+              title: issue.title,
+              body: issue.body || ''
+            }), {encoding: 'utf8', mode: 0o600});
+            core.setOutput('should_publish', 'true');
+
+      - name: Run deterministic guardrail tests
+        if: ${{ steps.guard.outputs.should_publish == 'true' }}
+        run: python3 .github/scripts/test_plan.py
+
+      - name: Prepare bounded prompt with repository context
+        if: ${{ steps.guard.outputs.should_publish == 'true' }}
+        run: |
+          python3 .github/scripts/prepare_plan.py \
+            "$RUNNER_TEMP/plan/issue.json" "$RUNNER_TEMP/plan/prompt.txt"
+
+      - name: Set up Node.js
+        if: ${{ steps.guard.outputs.should_publish == 'true' }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Install known-working Copilot CLI
+        if: ${{ steps.guard.outputs.should_publish == 'true' }}
+        run: |
+          npm install -g @github/copilot@1.0.114
+          copilot --version
+
+      - name: Generate plan with NO write tools
+        if: ${{ steps.guard.outputs.should_publish == 'true' }}
+        env:
+          COPILOT_GITHUB_TOKEN: ${{ secrets.COPILOT_GITHUB_TOKEN }}
+          COPILOT_AUTO_UPDATE: 'false'
+        run: |
+          set -euo pipefail
+          test -n "$COPILOT_GITHUB_TOKEN" || { echo "::error::Missing COPILOT_GITHUB_TOKEN"; exit 2; }
+          cd "$RUNNER_TEMP/plan"
+          copilot -p "$(cat prompt.txt)" \
+            -s --model=auto --no-ask-user --no-auto-update \
+            --disable-builtin-mcps --available-tools='view,grep,glob' \
+            --deny-tool=write --deny-tool=shell \
+            > raw-response.md
+
+      - name: Validate single comment contract
+        if: ${{ steps.guard.outputs.should_publish == 'true' }}
+        run: |
+          python3 .github/scripts/validate_plan.py \
+            "$RUNNER_TEMP/plan/raw-response.md" "$RUNNER_TEMP/plan/body.md"
+
+      - name: Hand off validated plan without authentication tokens
+        if: ${{ steps.guard.outputs.should_publish == 'true' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: planner-comment
+          path: ${{ runner.temp }}/plan/body.md
+          retention-days: 1
+          if-no-files-found: error
+
+  publish:
+    name: publish-one-plan-comment
+    needs: generate
+    if: ${{ needs.generate.outputs.should_publish == 'true' }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 3
+    permissions:
+      issues: write
+    steps:
+      - name: Get validated output
+        uses: actions/download-artifact@v4
+        with:
+          name: planner-comment
+          path: ${{ runner.temp }}/plan
+
+      - name: Publish only if label is still present and no previous plan exists
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const path = require('path');
+            const body = fs.readFileSync(path.join(process.env.RUNNER_TEMP, 'plan', 'body.md'), 'utf8').trim();
+            const header = '## Piano proposto dal Pianificatore AI';
+            const ending = 'In attesa di approvazione esplicita del TM. Nessuna modifica è stata effettuata.';
+            if (!body.startsWith(header + '\n') || !body.endsWith(ending) ||
+                body.length < 300 || body.length > 12000 ||
+                /(github_pat_|ghp_|gho_|ghu_|ghs_|ghr_)[A-Za-z0-9_]+/i.test(body)) {
+              core.setFailed('Rejected: output does not satisfy the one-comment contract.');
+              return;
+            }
+            const issueNumber = context.issue.number;
+            const {data: issue} = await github.rest.issues.get({
+              ...context.repo, issue_number: issueNumber
+            });
+            if (issue.state !== 'open' || !issue.labels.some(l => l.name === 'fase:piano')) {
+              core.setFailed('Issue closed or label removed: refusing to publish.');
+              return;
+            }
+            const comments = await github.paginate(github.rest.issues.listComments, {
+              ...context.repo, issue_number: issueNumber, per_page: 100
+            });
+            if (comments.some(c => (c.body || '').trimStart().startsWith(header))) {
+              core.notice('Another plan exists; no duplicate comment posted.');
+              return;
+            }
+            const response = await github.rest.issues.createComment({
+              ...context.repo, issue_number: issueNumber, body
+            });
+            core.notice('Published one plan comment: ' + response.data.html_url);

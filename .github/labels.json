@@ -1,0 +1,27 @@
+[
+  {
+    "name": "task-agente",
+    "color": "0E8A16",
+    "description": "Task agentico tracciato con Issue, piano e review"
+  },
+  {
+    "name": "fase:piano",
+    "color": "FBCA04",
+    "description": "PM avvia Pianificatore Copilot diretto"
+  },
+  {
+    "name": "fase:implementazione",
+    "color": "1D76DB",
+    "description": "Piano approvato: avvio Implementatore con controllo TM"
+  },
+  {
+    "name": "fase:test",
+    "color": "5319E7",
+    "description": "Tester indipendente su Pull Request"
+  },
+  {
+    "name": "fase:bloccato",
+    "color": "D93F0B",
+    "description": "Fase sospesa, serve decisione umana"
+  }
+]

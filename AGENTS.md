@@ -4,10 +4,10 @@ Questa è l’unica fonte autorevole delle regole di repository per TM e agenti 
 
 ## Contesto e riferimenti
 
-NeighborCare è una piattaforma per il supporto di vicinato e commissioni non sanitarie. La baseline RAD/SDD e il perimetro del prototipo devono essere **approvati dal team** prima di usarli per implementare funzionalità.
+NeighborCare è una piattaforma per il supporto di vicinato e commissioni non sanitarie. RAD e SDD versionati sono adottati dai PM come **baseline definitiva di riferimento** (`docs/BASELINE.md`). Le scelte tecniche ancora assenti (versioni, configurazioni, dipendenze) richiedono una decisione registrata prima del bootstrap; non si possono inventare.
 
-- RAD: `docs/rad/C01_RAD.pdf` (REVIEW).
-- SDD: `docs/sdd/C01_SDD.pdf` (DRAFT).
+- RAD: `docs/rad/C01_RAD.pdf` (baseline adottata; diciture interne del PDF invariate).
+- SDD: `docs/sdd/C01_SDD.pdf` (baseline adottata; diciture interne del PDF invariate).
 - Percorsi e convenzioni degli artefatti: `docs/README.md`.
 - Workflow di team: `docs/processo-agentico.md`.
 
@@ -30,9 +30,9 @@ Un file di ruolo non avvia un task automaticamente e non concede permessi aggiun
 
 ## Modalità d’uso degli assistenti
 
-Usare il processo `docs/processo-agentico.md`: **Issue → piano → approvazione TM → implementazione → Tester indipendente → CI e Revisore → approvazione umana → merge**. Le label sono tracciamento delle fasi finché non esiste una specifica automazione autorizzata.
+Usare il processo `docs/processo-agentico.md`: **Issue → piano → approvazione TM → implementazione → Tester indipendente → CI e Revisore → approvazione umana → merge**. Le label `fase:piano`, `fase:implementazione` e `fase:test` avviano le automazioni esplicitamente documentate in `docs/processo-agentico.md`; i controlli di approvazione TM restano obbligatori.
 
-La CI in `.github/workflows/ci.yml` esegue controlli deterministici e gratuiti, non chiama modelli AI. Non configurare API, chiavi, secret o servizi AI a pagamento. Copilot cloud agent richiede idoneità e quote del piano del singolo utente; verificarle prima dell'uso. Nessun fallback a pagamento.
+La CI in `.github/workflows/ci.yml` esegue controlli deterministici e gratuiti, non chiama modelli AI. L'automazione di corso utilizza soltanto il secret GitHub Actions `COPILOT_GITHUB_TOKEN` esistente per Copilot CLI, mai chiavi nel codice; non introdurre API esterne a consumo o fallback a pagamento. Verificare idoneità, quota e costi prima delle esecuzioni.
 
 ## Sempre
 
@@ -55,8 +55,8 @@ La CI in `.github/workflows/ci.yml` esegue controlli deterministici e gratuiti, 
 ## Mai
 
 - Inventare funzionalità, requisiti, API, classi, metodi, tabelle o diagrammi; scegliere autonomamente stack, librerie o comportamenti mancanti.
-- Considerare una bozza come approvata o alterare i PDF originali RAD/SDD; le revisioni sono nuovi documenti versionati.
-- Fare push diretto o force push su `main`, autoapprovare una PR o sostituire la review umana con il giudizio di un agente.
+- Alterare i PDF RAD/SDD originali o inventare firme/versioni di approvazione; le revisioni sono nuovi documenti versionati e le discrepanze vanno evidenziate.
+- Fare push diretto o force push su `main`, autoapprovare una PR o sostituire la review umana con il giudizio di un agente. La label applicata da un TM autorizza solo le azioni e i file esplicitamente elencati nell'approvazione dell'Issue, su un branch dedicato.
 - Alterare/disattivare test o rimuovere asserzioni per ottenere un risultato positivo; eventuali correzioni alla specifica richiedono approvazione e motivazione nella PR.
 - Inserire credenziali o dati personali reali in codice, fixture, Issue o log: usa dati sintetici. Per esposizioni di segreti avvisa i PM in privato e richiedi revoca/rotazione; cancellare il file non elimina la cronologia.
 - Eseguire commit, push o merge senza autorizzazione nel task; il merge richiede comunque review e controlli previsti.

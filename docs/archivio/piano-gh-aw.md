@@ -1,3 +1,9 @@
+# Pianificatore gh-aw disattivato (storico)
+
+Sorgente conservato per eventuali diagnosi. Il workflow attivo è `.github/workflows/piano-direct.yml`; il lock originale resta nella cronologia Git.
+
+---
+
 ---
 name: Pianificatore NeighborCare
 description: Propone un piano per le Issue con etichetta fase:piano, senza modificare file.

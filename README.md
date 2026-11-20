@@ -5,8 +5,7 @@ NeighborCare mette in relazione Beneficiari e Neighbor verificati per commission
 
 ## Stato del progetto
 
-Il RAD disponibile è in revisione e l’SDD è una bozza;
-l’approvazione della baseline per lo sviluppo non è attestata.
+**Decisione dei PM:** RAD e SDD versionati sono adottati come **baseline di progetto definitiva** per la pianificazione. Le diciture REVIEW/DRAFT nei PDF originali non vengono riscritte; eventuali incoerenze si risolvono con decisioni tecniche tracciate. Vedi [baseline](docs/BASELINE.md).
 
 L'architettura prevista dallo SDD è Three-Tier:
 
@@ -26,13 +25,12 @@ Il codice applicativo non è ancora stato inizializzato.
 
 | Artefatto            | Percorso                                | Stato                                                                |
 | -------------------- | --------------------------------------- | -------------------------------------------------------------------- |
-| RAD v1.0, 09/11/2026 | [RAD](docs/rad/C01_RAD.pdf) | REVIEW: contiene commenti di revisione; approvazione non attestata   |
-| SDD v0.0             | [SDD](docs/sdd/C01_SDD.pdf)  | DRAFT: incompleto; copertina e footer riportano versioni discordanti |
+| RAD v1.0, 09/11/2026 | [RAD](docs/rad/C01_RAD.pdf) | Baseline definitiva adottata dai PM; PDF originale invariato |
+| SDD v0.0             | [SDD](docs/sdd/C01_SDD.pdf)  | Baseline definitiva adottata dai PM; PDF originale invariato |
 
-I PDF sono conservati integralmente. La loro presenza non costituisce approvazione.
+I PDF sono conservati integralmente; la decisione operativa dei PM è registrata in `docs/BASELINE.md`.
 La struttura include esempi didattici inventati (“Invia un saluto”) per UC, sorgenti PlantUML, Category Partition e Test Frame: mostrano come organizzare gli artefatti e non costituiscono specifiche di NeighborCare.
-Prima dello sviluppo vanno risolti i commenti rilevanti del RAD e le incoerenze dello SDD, inclusi i segnaposto tecnologici in §3.1 e i riferimenti ai contenuti in §1.6.
-Occorrono inoltre contratti condivisi, modelli pertinenti e Test Frame approvati; non sono ancora disponibili in forma separata.
+Eventuali discrepanze tra i documenti o riferimenti non fruibili da un agente vanno chiariti nella relativa Issue prima di implementare; non si inventano contratti o Test Frame mancanti.
 
 ## Struttura
 
@@ -53,17 +51,17 @@ Trello resta il riferimento per il coordinamento operativo, Ganttfather per la p
 
 ## Workflow agentico e CI
 
-La repository usa **GitHub Copilot Custom Agents** in `[.github/agents/](.github/agents/)` per i ruoli Pianificatore, Implementatore, Tester e Revisore. La guida operativa è [docs/processo-agentico.md](docs/processo-agentico.md): prima di implementare il TM approva un piano registrato nella Issue, poi il lavoro procede su branch e Draft PR, con test indipendenti, review umana e merge controllato.
+La repository usa **GitHub Copilot CLI in GitHub Actions** e i profili di ruolo in [.github/agents/](.github/agents/) per Pianificatore, Implementatore, Tester e Revisore. La guida operativa è [docs/processo-agentico.md](docs/processo-agentico.md): prima di implementare il TM approva un piano registrato nella Issue, poi il lavoro procede su branch e Draft PR, con test indipendenti, review umana e merge controllato.
 
-La [CI](.github/workflows/ci.yml) controlla le Pull Request verso `main` con strumenti locali senza API AI; finché i progetti `frontend/` e `backend/` non saranno inizializzati non esegue build/test applicativi. I controlli CI saranno aggiunti al Ruleset come obbligatori solo dopo un primo run riuscito. La configurazione di [CODEOWNERS](.github/CODEOWNERS) è iniziale; per ora la review Code Owner non è obbligatoria.
+La [CI](.github/workflows/ci.yml) controlla le Pull Request verso `main` con strumenti locali senza API AI; finché i progetti `frontend/` e `backend/` non saranno inizializzati non esegue build/test applicativi. La configurazione [CODEOWNERS](.github/CODEOWNERS) include PM e team Developers; attivare i requisiti di review e lo status check `repository-checks` in Settings → Rules.
 
 I file `XX/YY`, `docs/modelli/sdd/class.puml` e gli esempi di test sono **template didattici da conservare**: aiutano i ragazzi a organizzare casi d'uso, UML e Test Frame, ma non rappresentano le specifiche da implementare. Sostituirli o affiancarli con i **modelli reali approvati** prima di avviare un UC di prodotto.
 
-Copilot e le Actions hanno quote e condizioni diverse; non attivare servizi o API a pagamento. Le fasi agentiche, salvo la CI, sono avviate e controllate dai TM, non tramite webhook automatici. Chi usa un agente rimane responsabile del suo codice.
+Copilot e le Actions hanno quote e condizioni diverse; non attivare servizi o API a pagamento. Le fasi partono da gesti umani (label o Ready for review), con controlli espliciti e gate di approvazione. La pipeline automatica è descritta in [processo-agentico](docs/processo-agentico.md). Chi usa un agente rimane responsabile del suo codice.
 
 ## Stato di sviluppo
 
 - Frontend React/PWA e backend Java/Spring Boot da inizializzare previa approvazione di stack e comandi.
 - PostgreSQL proposto nell'SDD; l'eventuale uso di PostGIS richiede una decisione tecnica documentata.
-- I veri modelli UML, Category Partition e Test Frame devono ancora essere importati e approvati.
+- Per ogni task applicativo, allegare riferimenti esatti ai veri modelli e Test Frame contenuti nella baseline, con eventuali trasposizioni testuali approvate.
 - Trello resta lo strumento di coordinamento operativo e Ganttfather per la pianificazione.

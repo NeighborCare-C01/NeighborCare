@@ -1,0 +1,199 @@
+# Human-approved Issue label -> restricted Copilot edits -> verified patch -> Draft PR.
+# No AI credentials in the publishing job. No direct push to main.
+name: Implementatore - Copilot CLI diretto
+
+on:
+  issues:
+    types: [labeled]
+
+permissions: {}
+
+concurrency:
+  group: implementatore-${{ github.event.issue.number }}
+  cancel-in-progress: false
+
+jobs:
+  generate:
+    if: ${{ github.event.label.name == 'fase:implementazione' }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 18
+    permissions:
+      contents: read
+      issues: read
+      pull-requests: read
+    outputs:
+      allowed: ${{ steps.guard.outputs.allowed }}
+      issue_number: ${{ steps.guard.outputs.issue_number }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Verify PM approval, allowed files and no existing task PR
+        id: guard
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const path = require('path');
+            const n = context.issue.number;
+            const {data: permission} = await github.rest.repos.getCollaboratorPermissionLevel({
+              ...context.repo, username: context.actor
+            });
+            if (!['write','maintain','admin'].includes(permission.permission)) {
+              core.setFailed('A repository writer must explicitly add the implementation label.');
+              return;
+            }
+            const {data: issue} = await github.rest.issues.get({...context.repo, issue_number:n});
+            if (issue.state !== 'open' || issue.pull_request ||
+                !issue.labels.some(l => l.name === 'fase:implementazione')) {
+              core.setFailed('The Issue must be open and labeled fase:implementazione.');
+              return;
+            }
+            const comments = await github.paginate(github.rest.issues.listComments, {
+              ...context.repo, issue_number:n, per_page:100
+            });
+            const plans = comments.filter(c => (c.body||'').startsWith('## Piano proposto dal Pianificatore AI'));
+            const plan = plans.at(-1);
+            if (!plan) { core.setFailed('Missing AI plan'); return; }
+            const approvals = comments.filter(c =>
+              c.user?.login === 'Antonio-Caiazzo' &&
+              (c.body||'').startsWith('APPROVAZIONE TM:') &&
+              new Date(c.created_at) > new Date(plan.created_at)
+            );
+            const approval = approvals.at(-1);
+            if (!approval) {
+              core.setFailed('Missing post-plan APPROVAZIONE TM by the verified PM. No AI call made.');
+              return;
+            }
+            const match = (approval.body||'').match(/^File autorizzati:\s*(.+)$/m);
+            if (!match) { core.setFailed('Approval must contain File autorizzati: path1, path2'); return; }
+            const allowed = match[1].trim();
+            if (allowed.length > 800) { core.setFailed('Allowed files list too long'); return; }
+            const allPRs = await github.paginate(github.rest.pulls.list, {
+              ...context.repo, state:'open', per_page:100
+            });
+            if (allPRs.some(pr => (pr.head.ref === 'agent/issue-' + n + '-implementazione') ||
+                  (pr.body||'').includes('Closes #' + n))) {
+              core.setFailed('An open PR already addresses the Issue; no duplicate AI execution.');
+              return;
+            }
+            const dir = path.join(process.env.RUNNER_TEMP,'implementazione');
+            fs.mkdirSync(dir,{recursive:true});
+            fs.writeFileSync(path.join(dir,'task.json'), JSON.stringify({
+              issue:{number:n,title:issue.title,body:issue.body||''},
+              plan:plan.body,
+              approval:approval.body,
+              allowed_paths:allowed
+            }),{mode:0o600});
+            core.setOutput('allowed',allowed);
+            core.setOutput('issue_number',String(n));
+      - name: Prepare restricted task prompt
+        env:
+          TASK: ${{ runner.temp }}/implementazione/task.json
+        run: python3 .github/scripts/agent_changes.py prepare --role implementatore --task "$TASK" --output "$RUNNER_TEMP/implementazione/prompt.txt"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install known-working Copilot CLI
+        run: npm install -g @github/copilot@1.0.114
+      - name: Generate restricted changes (no shell, network or Git credentials)
+        env:
+          COPILOT_GITHUB_TOKEN: ${{ secrets.COPILOT_GITHUB_TOKEN }}
+          COPILOT_AUTO_UPDATE: 'false'
+        run: |
+          set -euo pipefail
+          test -n "$COPILOT_GITHUB_TOKEN"
+          copilot -p "$(cat "$RUNNER_TEMP/implementazione/prompt.txt")" \
+            -s --model=auto --no-ask-user --no-auto-update \
+            --disable-builtin-mcps \
+            --available-tools='view,grep,glob,read,edit,write,apply_patch' \
+            --allow-tool='edit,write,apply_patch' \
+            --deny-tool=shell > "$RUNNER_TEMP/implementazione/report.txt"
+      - name: Validate only approved files changed and export a bounded patch
+        env:
+          APPROVED_FILES: ${{ steps.guard.outputs.allowed }}
+        run: |
+          python3 .github/scripts/agent_changes.py verify --role implementatore \
+            --allowed "$APPROVED_FILES" --output "$RUNNER_TEMP/implementazione/change.patch"
+          python3 .github/scripts/check_repository.py
+          if git diff --name-only HEAD | grep -q '^backend/'; then
+            test -f backend/pom.xml || { echo "::error::Backend bootstrap missing (pom.xml)"; exit 1; }
+            (cd backend && mvn -B -q verify)
+          fi
+          if git diff --name-only HEAD | grep -q '^frontend/'; then
+            test -f frontend/package.json && test -f frontend/package-lock.json || { echo "::error::Frontend bootstrap incomplete"; exit 1; }
+            (cd frontend && npm ci && npm test -- --run)
+          fi
+      - uses: actions/upload-artifact@v4
+        with:
+          name: implementazione-patch
+          path: ${{ runner.temp }}/implementazione/change.patch
+          if-no-files-found: error
+          retention-days: 1
+
+  publish:
+    needs: generate
+    if: ${{ needs.generate.result == 'success' }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 6
+    permissions:
+      contents: write
+      issues: read
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: implementazione-patch
+          path: ${{ runner.temp }}/implementazione
+      - name: Recheck approval and label before writing any branch
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const n = Number(context.issue.number);
+            const {data: issue} = await github.rest.issues.get({...context.repo,issue_number:n});
+            const comments = await github.paginate(github.rest.issues.listComments,{
+              ...context.repo,issue_number:n,per_page:100
+            });
+            if (issue.state !== 'open' || !issue.labels.some(l=>l.name==='fase:implementazione') ||
+              !comments.some(c=>c.user?.login==='Antonio-Caiazzo' && (c.body||'').startsWith('APPROVAZIONE TM:'))) {
+              core.setFailed('Issue/PM approval no longer valid. Refusing to push.');
+            }
+      - name: Apply approved patch to isolated branch and open Draft PR
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE_NUMBER: ${{ needs.generate.outputs.issue_number }}
+          APPROVED_FILES: ${{ needs.generate.outputs.allowed }}
+        run: |
+          set -euo pipefail
+          BRANCH="agent/issue-${ISSUE_NUMBER}-implementazione"
+          git checkout -b "$BRANCH"
+          git apply --check "$RUNNER_TEMP/implementazione/change.patch"
+          git apply --index "$RUNNER_TEMP/implementazione/change.patch"
+          python3 - <<'PY'
+          import os, subprocess, sys
+          allowed = {p.strip() for p in os.environ['APPROVED_FILES'].split(',')}
+          changed = set(subprocess.check_output(['git','diff','--cached','--name-only']).decode().splitlines())
+          if not changed or not changed.issubset(allowed) or any(p.startswith('.github/') for p in changed):
+              sys.exit('Refusing to publish: patch escapes approved paths')
+          print('Allowed changed files:', sorted(changed))
+          PY
+          git -c user.name='github-actions[bot]' -c user.email='41898282+github-actions[bot]@users.noreply.github.com' \
+            commit -m "docs: apply approved Issue #${ISSUE_NUMBER} plan"
+          git push origin "HEAD:refs/heads/$BRANCH"
+          gh pr create --repo "$GITHUB_REPOSITORY" --base main --head "$BRANCH" --draft \
+            --title "[AGENTE] Implementazione Issue #${ISSUE_NUMBER}" \
+            --body "Closes #${ISSUE_NUMBER}
+
+          ## Piano e approvazione
+          Piano pubblicato nella Issue #${ISSUE_NUMBER}; approvazione esplicita TM registrata.
+
+          ## Ambito
+          File approvati: ${APPROVED_FILES}
+
+          ## Verifica
+          Patch limitata ai file autorizzati; controlli deterministici eseguiti nel workflow.
+          L'implementazione non costituisce approvazione dei Test Frame.
+
+          ## Stato
+          Draft PR: richiede Tester indipendente, CI, Revisore e approvazione umana. Non effettuare merge automatico."

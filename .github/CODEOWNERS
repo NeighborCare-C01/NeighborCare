@@ -1,5 +1,18 @@
-# Responsabili iniziali verificati. Aggiungere il secondo PM dopo averne verificato l'username GitHub.
-# L'approvazione dei Code Owner diventerà obbligatoria solo quando il Ruleset lo richiederà.
+# CODEOWNERS sceglie chi deve REVISIONARE, non limita chi puo' modificare i file.
+# Team developers: 6 membri dell'organizzazione Team-C01.
+# Il secondo PM conserva il proprio accesso Write; aggiungere il suo username
+# a queste righe dopo verifica, senza indovinare l'account GitHub.
+
+# Codice e documentazione: team developers, con PM responsabile della documentazione.
+* @Team-C01/developers
+/docs/ @Antonio-Caiazzo @Team-C01/developers
+/backend/ @Team-C01/developers
+/frontend/ @Team-C01/developers
+
+# Governance, file agenti e workflow: controllo PM.
 /AGENTS.md @Antonio-Caiazzo
 /.github/ @Antonio-Caiazzo
-/docs/processo-agentico.md @Antonio-Caiazzo
+/.claude/ @Antonio-Caiazzo
+/CLAUDE.md @Antonio-Caiazzo
+/GEMINI.md @Antonio-Caiazzo
+/agents/ @Antonio-Caiazzo @Team-C01/developers
