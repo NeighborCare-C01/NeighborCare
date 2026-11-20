@@ -128,6 +128,27 @@ jobs:
             --disable-builtin-mcps --available-tools='view,grep,glob,read,edit,write,apply_patch' \
             --allow-tool='edit,write,apply_patch' --deny-tool=shell > "$RUNNER_TEMP/report.md"
           test -s "$RUNNER_TEMP/report.md"
+      - name: Blocca modifiche fuori ambito prima di eseguire codice generato
+        run: |
+          set -euo pipefail
+          git add --all
+          git diff --cached --check
+          git diff --cached --exit-code -- .github AGENTS.md .gitignore \
+            docs/rad/C01_RAD.pdf docs/sdd/C01_SDD.pdf
+          test -z "$(git diff --cached --name-only --diff-filter=D)" || {
+            echo "::error::Non e consentito eliminare file"; exit 1;
+          }
+          if git diff --cached --summary | grep -E '(mode 120000|rename|delete)'; then
+            echo "::error::Symlink, rinomina o cancellazione non autorizzata"; exit 1
+          fi
+          git diff --cached --quiet && {
+            echo "::error::Nessuna modifica prodotta dall agente"; exit 1;
+          }
+          while IFS= read -r -d '' file; do
+            grep -Fxq -- "$file" "$RUNNER_TEMP/allowed_files.txt" || {
+              echo "::error::File fuori dal piano approvato: $file"; exit 1;
+            }
+          done < <(git diff --cached --name-only -z)
       - uses: actions/setup-java@v4
         if: ${{ hashFiles('backend/pom.xml') != '' }}
         with:
