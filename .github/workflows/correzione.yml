@@ -151,6 +151,12 @@ jobs:
             --disable-builtin-mcps --available-tools='view,grep,glob,read,edit,write,apply_patch' \
             --allow-tool='edit,write,apply_patch' --deny-tool=shell > "$RUNNER_TEMP/report.md"
           test -s "$RUNNER_TEMP/report.md"
+          test "$(wc -c < "$RUNNER_TEMP/report.md")" -le 16000 || {
+            echo '::error::Report Copilot troppo esteso'; exit 1;
+          }
+          if grep -Eq '(github_pat_|ghp_|gho_|ghs_)[A-Za-z0-9_]+' "$RUNNER_TEMP/report.md"; then
+            echo '::error::Possibile credenziale nel report: pubblicazione bloccata'; exit 1
+          fi
       - name: Blocca modifiche non autorizzate
         if: ${{ steps.guard.outputs.skip == 'false' }}
         run: |
