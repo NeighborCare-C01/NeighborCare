@@ -9,15 +9,23 @@ HEADER="## Revisione AI — PR #"
 END="Revisione automatica non sostituisce approvazione umana."
 
 
-def validate(raw:Path, out:Path):
+def validate(raw:Path, out:Path, number:int):
     body=raw.read_text(encoding="utf-8").strip()
-    if (not body.startswith(HEADER) or not body.endswith(END)
-            or len(body)<350 or len(body)>16000
-            or "Diff" not in body and "diff" not in body):
-        raise ValueError("Unusable/invalid reviewer output; no PR comment will be published")
+    if len(body)<160 or len(body)>16000:
+        raise ValueError("Reviewer output too short or too long: no publication")
+    import re
+    if re.search(r"(?i)(github_pat_|ghp_|gho_|ghs_|ghu_|ghr_)[A-Za-z0-9_]+", body):
+        raise ValueError("Reviewer output contains credential-like text")
+    if not re.search(r"(diff|file|modelli|test|risch|requisit|document)", body, re.IGNORECASE):
+        raise ValueError("Reviewer did not provide a meaningful technical report")
+    if body.startswith(HEADER):
+        body="\n".join(body.splitlines()[1:]).strip()
+    if body.endswith(END):
+        body=body[:-len(END)].strip()
+    normalized=HEADER+str(number)+"\n\n"+body+"\n\n"+END+"\n"
     out.parent.mkdir(parents=True,exist_ok=True)
-    out.write_text(body+"\n",encoding="utf-8")
-    print("Review report validated, no repository files modified")
+    out.write_text(normalized,encoding="utf-8")
+    print("AI review output validated and formatted deterministically ("+str(len(normalized))+" characters)")
 
 
 def prepare(source:Path,out:Path):
@@ -54,6 +62,6 @@ def prepare(source:Path,out:Path):
 
 if __name__=="__main__":
     if sys.argv[1]=="--validate":
-        validate(Path(sys.argv[2]),Path(sys.argv[3]))
+        validate(Path(sys.argv[2]),Path(sys.argv[3]),int(sys.argv[4]))
     else:
         prepare(Path(sys.argv[1]),Path(sys.argv[2]))
