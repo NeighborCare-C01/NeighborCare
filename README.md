@@ -7,7 +7,7 @@ Progetto universitario di Ingegneria del Software e Gestione dei Progetti Softwa
 - [frontend/](frontend/) e [backend/](backend/): cartelle per il futuro codice, contenenti solo `.gitkeep`.
 - [docs/README.md](docs/README.md): PDF, UC, diagrammi, Category Partition e Test Frame. Conservare tutti gli esempi XX/YY per i ragazzi; non sono requisiti da implementare.
 - [AGENTS.md](AGENTS.md): contesto, stack, comandi disponibili e regole comuni.
-- [.github/agents/](.github/agents/): Tester e Revisore Copilot, adattati dalle slide 45 e 69.
+- [.github/agents/](.github/agents/): quattro profili Copilot dedicati a Pianificatore, Implementatore, Tester e Revisore.
 - [.github/ISSUE_TEMPLATE/task-agente.yml](.github/ISSUE_TEMPLATE/task-agente.yml), [template PR](.github/pull_request_template.md) e [CODEOWNERS](.github/CODEOWNERS): task, tracciabilità e responsabilità.
 
 I workflow seguono i passi 7, 9, 10, 11 e 14 del tutorial, usando Copilot CLI al posto dell'action Claude. Non sono presenti script Python versionati: i piccoli controlli deterministici di approvazioni, ambito, output e test sono integrati nei workflow. I prompt restano nei workflow stessi.
