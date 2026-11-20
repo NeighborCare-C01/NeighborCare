@@ -1,0 +1,180 @@
+# Independent test generation for same-repository Draft PRs.
+# The tester cannot edit app code, requirements, existing tests, or workflow settings.
+name: Tester indipendente - Copilot CLI diretto
+
+on:
+  pull_request:
+    types: [labeled]
+
+permissions: {}
+
+concurrency:
+  group: tester-${{ github.event.pull_request.number }}
+  cancel-in-progress: false
+
+jobs:
+  generate:
+    if: ${{ github.event.label.name == 'fase:test' && github.event.pull_request.head.repo.full_name == github.repository }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 18
+    permissions:
+      contents: read
+      issues: read
+      pull-requests: read
+    outputs:
+      docs_only: ${{ steps.guard.outputs.docs_only }}
+      pr_ref: ${{ steps.guard.outputs.pr_ref }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+      - name: Verify scope and independently retrieve the originating specification
+        id: guard
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const path = require('path');
+            const pr = context.payload.pull_request;
+            const {data: permission} = await github.rest.repos.getCollaboratorPermissionLevel({
+              ...context.repo, username:context.actor
+            });
+            if (!['write','maintain','admin'].includes(permission.permission)) {
+              core.setFailed('The test label must be applied by a repository writer.'); return;
+            }
+            if (!pr.draft || pr.head.repo.full_name !== context.payload.repository.full_name) {
+              core.setFailed('Tests must be requested on a same-repo Draft PR.'); return;
+            }
+            const match = (pr.body||'').match(/\b(?:Closes|Refs|Fixes)\s+#(\d+)\b/i);
+            if (!match) { core.setFailed('PR missing Closes #N / Refs #N'); return; }
+            const n = Number(match[1]);
+            const {data: issue} = await github.rest.issues.get({...context.repo,issue_number:n});
+            const comments = await github.paginate(github.rest.issues.listComments,{
+              ...context.repo, issue_number:n,per_page:100
+            });
+            const plan = comments.find(c=>(c.body||'').startsWith('## Piano proposto dal Pianificatore AI'));
+            if (!plan) { core.setFailed('No planning baseline found for linked Issue'); return; }
+            const files = await github.paginate(github.rest.pulls.listFiles,{
+              ...context.repo,pull_number:pr.number,per_page:100
+            });
+            const docsOnly = files.length > 0 && files.every(f =>
+              f.filename.match(/(^|\/)(README\.md|[^/]+\.md)$/) ||
+              f.filename.startsWith('docs/') && !f.filename.endsWith('.pdf')
+            );
+            core.setOutput('docs_only',String(docsOnly));
+            core.setOutput('pr_ref',pr.head.ref);
+            if (docsOnly) {
+              core.notice('Documentation-only task: application Test Frames N/A; no AI call or invented test.');
+              return;
+            }
+            if (!(issue.body||'').match(/(?:Test Frame|TF[0-9]|Category Partition)/i)) {
+              core.setFailed('No approved test frame reference in Issue: cannot derive independent tests.');
+              return;
+            }
+            const task={issue:{number:n,title:issue.title,body:issue.body||''},
+              plan:plan.body,approval:'Independent tester invoked by authorized PR label'};
+            const dir=path.join(process.env.RUNNER_TEMP,'tester');
+            fs.mkdirSync(dir,{recursive:true});
+            fs.writeFileSync(path.join(dir,'task.json'),JSON.stringify(task),{mode:0o600});
+      - name: Prepare independent tester context
+        if: ${{ steps.guard.outputs.docs_only == 'false' }}
+        run: python3 .github/scripts/agent_changes.py prepare --role tester --task "$RUNNER_TEMP/tester/task.json" --output "$RUNNER_TEMP/tester/prompt.txt"
+      - uses: actions/setup-node@v4
+        if: ${{ steps.guard.outputs.docs_only == 'false' }}
+        with:
+          node-version: '22'
+      - name: Install Copilot CLI
+        if: ${{ steps.guard.outputs.docs_only == 'false' }}
+        run: npm install -g @github/copilot@1.0.114
+      - name: Generate only new independent tests
+        if: ${{ steps.guard.outputs.docs_only == 'false' }}
+        env:
+          COPILOT_GITHUB_TOKEN: ${{ secrets.COPILOT_GITHUB_TOKEN }}
+          COPILOT_AUTO_UPDATE: 'false'
+        run: |
+          set -euo pipefail
+          test -n "$COPILOT_GITHUB_TOKEN"
+          copilot -p "$(cat "$RUNNER_TEMP/tester/prompt.txt")" \
+            -s --model=auto --no-ask-user --no-auto-update \
+            --disable-builtin-mcps \
+            --available-tools='view,grep,glob,read,write,edit,apply_patch' \
+            --allow-tool='write,edit,apply_patch' --deny-tool=shell \
+            > "$RUNNER_TEMP/tester/report.txt"
+      - name: Enforce new test-file-only changes
+        if: ${{ steps.guard.outputs.docs_only == 'false' }}
+        run: |
+          python3 .github/scripts/agent_changes.py verify --role tester \
+            --output "$RUNNER_TEMP/tester/test.patch"
+          if [ -f backend/pom.xml ]; then
+            (cd backend && mvn -B -q test) || echo "::warning::Generated tests fail: requires developer investigation; no source change."
+          fi
+      - uses: actions/upload-artifact@v4
+        if: ${{ steps.guard.outputs.docs_only == 'false' }}
+        with:
+          name: independent-tests
+          path: ${{ runner.temp }}/tester/test.patch
+          retention-days: 1
+          if-no-files-found: error
+
+  publish:
+    needs: generate
+    if: ${{ needs.generate.result == 'success' }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 6
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - name: Documentation-only verification report
+        if: ${{ needs.generate.outputs.docs_only == 'true' }}
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const pr = context.payload.pull_request;
+            const comments = await github.paginate(github.rest.issues.listComments,{
+              ...context.repo,issue_number:pr.number,per_page:100
+            });
+            if (!comments.some(c=>(c.body||'').includes('## Tester indipendente — verifica documentale'))) {
+              await github.rest.issues.createComment({...context.repo,issue_number:pr.number,
+                body:'## Tester indipendente — verifica documentale\n\nPR esclusivamente documentale: Test Frame applicativi N/A. Verificare link Markdown, diff e ambito in CI/revisione. Nessun test applicativo inventato.'});
+            }
+      - uses: actions/checkout@v4
+        if: ${{ needs.generate.outputs.docs_only == 'false' }}
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+      - uses: actions/download-artifact@v4
+        if: ${{ needs.generate.outputs.docs_only == 'false' }}
+        with:
+          name: independent-tests
+          path: ${{ runner.temp }}/tester
+      - name: Add only independent tests on the existing PR branch
+        if: ${{ needs.generate.outputs.docs_only == 'false' }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_REF: ${{ needs.generate.outputs.pr_ref }}
+          EXPECTED_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          set -euo pipefail
+          ACTUAL="$(gh api "repos/$GITHUB_REPOSITORY/pulls/${{ github.event.pull_request.number }}" --jq '.head.sha')"
+          test "$EXPECTED_SHA" = "$ACTUAL" || { echo "::error::PR branch changed during test generation"; exit 1; }
+          git checkout -B "$PR_REF"
+          git apply --check "$RUNNER_TEMP/tester/test.patch"
+          git apply --index "$RUNNER_TEMP/tester/test.patch"
+          python3 - <<'PY'
+          import re,subprocess,sys
+          paths=subprocess.check_output(['git','diff','--cached','--name-only']).decode().splitlines()
+          def test_file(p):
+              return p.startswith(('backend/src/test/','src/test/','frontend/tests/')) or (
+                 p.startswith('frontend/src/') and re.search(r'\.(test|spec)\.[^.]+$',p))
+          if not paths or not all(test_file(p) for p in paths):
+              sys.exit('Refusing to push non-test changes')
+          PY
+          git -c user.name='github-actions[bot]' -c user.email='41898282+github-actions[bot]@users.noreply.github.com' \
+            commit -m "test: independent test frames for PR #${{ github.event.pull_request.number }}"
+          git push origin "HEAD:refs/heads/$PR_REF"
+          gh pr comment "${{ github.event.pull_request.number }}" --repo "$GITHUB_REPOSITORY" \
+            --body "## Tester indipendente — test aggiunti
+
+          Test generati da specifiche e Test Frame della Issue collegata in una sessione separata. 
+          Verificare le asserzioni, eseguire la CI sul branch aggiornato e correggere il codice (non i test) in caso di fallimento."
