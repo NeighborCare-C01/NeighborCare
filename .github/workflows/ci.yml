@@ -27,6 +27,11 @@ jobs:
       - name: Check Markdown local links
         run: python3 .github/scripts/check_repository.py
 
+      - name: Verify Copilot pipeline scripts and guardrails
+        run: |
+          PYTHONDONTWRITEBYTECODE=1 python3 -B .github/scripts/test_plan.py
+          PYTHONDONTWRITEBYTECODE=1 python3 -B .github/scripts/test_agent_pipeline.py
+
       - name: Check YAML syntax
         shell: bash
         run: |
