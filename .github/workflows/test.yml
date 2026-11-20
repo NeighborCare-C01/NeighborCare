@@ -176,5 +176,5 @@ jobs:
           gh pr comment "${{ github.event.pull_request.number }}" --repo "$GITHUB_REPOSITORY" \
             --body "## Tester indipendente — test aggiunti
 
-          Test generati da specifiche e Test Frame della Issue collegata in una sessione separata. 
+          Test generati da specifiche e Test Frame della Issue collegata in una sessione separata.
           Verificare le asserzioni, eseguire la CI sul branch aggiornato e correggere il codice (non i test) in caso di fallimento."
