@@ -1,7 +1,7 @@
 ' ESEMPIO DIDATTICO INVENTATO - non e un modello di NeighborCare.
 ' Esempio: Invia un saluto. Fonte: nessuna, scenario semplificato.
 ' Qui va il sequence reale. UC collegato: ../../rad/uc/UC_XX_YY.md. L’alt distingue successo ed errore.
-' Per il progetto: sostituire contenuti, nomi e riferimenti con quelli dei documenti approvati.
+' Per il progetto: creare un nuovo file dai modelli approvati; mantenere intatto questo esempio.
 ' I nomi delle classi di questo esempio seguono ../sdd/class.puml.
 @startuml
 title ESEMPIO INVENTATO - Sequence Diagram
