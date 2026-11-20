@@ -3,7 +3,7 @@
 ' Qui va il diagramma architetturale a livelli (SDD §3.2.2, Three-tier Architecture).
 ' Mostra la separazione delle responsabilita, non i server fisici del deployment.
 ' La presenza del livello dati in questo esempio generico non aggiunge persistenza al saluto.
-' Per il progetto sostituire livelli e dipendenze con quelli dell’SDD approvato.
+' Per il progetto creare un file separato dal diagramma SDD approvato, senza modificare questo esempio.
 @startuml
 title ESEMPIO INVENTATO - Architettura a tre livelli generica
 top to bottom direction
