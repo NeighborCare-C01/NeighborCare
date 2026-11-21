@@ -49,4 +49,4 @@ Per piani respinti, test falliti e revisioni con rilievi, seguire la [procedura 
 
 Questa sezione documenta una prova del workflow agentico del Team C01.
 
-I report AI supportano la review umana.
+I report AI supportano, ma non sostituiscono, la review umana indipendente.
